@@ -1,64 +1,41 @@
 // models/RistaRequest.ts
-export interface RistaRequest {
-  id: string;
-  senderId: string;
-  receiverId: string;
+import mongoose, { Schema, Document } from 'mongoose';
+
+export interface IRistaRequest extends Document {
+  senderId: mongoose.Types.ObjectId;
+  receiverId: mongoose.Types.ObjectId;
   senderName: string;
   receiverName: string;
-  senderImage?: string;
-  receiverImage?: string;
   message?: string;
-  status: 'PENDING_ADMIN' | 'SENT_TO_USER' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+  status: string;
   adminNote?: string;
-  createdAt: string;
-  updatedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Dummy data export
-export const DUMMY_REQUESTS: RistaRequest[] = [
+const RistaRequestSchema = new Schema<IRistaRequest>(
   {
-    id: '1',
-    senderId: '2',
-    receiverId: '1',
-    senderName: 'Mohammad Ali',
-    receiverName: 'Fatima Khan',
-    status: 'PENDING_ADMIN',
-    message: 'Assalamu Alaikum, I am interested in your profile.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    senderName: { type: String, required: true },
+    receiverName: { type: String, required: true },
+    message: { type: String, maxlength: 500 },
+    status: { 
+      type: String, 
+      enum: ['PENDING_ADMIN', 'SENT_TO_USER', 'ACCEPTED', 'REJECTED', 'CANCELLED'],
+      default: 'PENDING_ADMIN'
+    },
+    adminNote: { type: String },
+    reviewedBy: { type: String },
+    reviewedAt: { type: Date },
   },
-  {
-    id: '2',
-    senderId: '1',
-    receiverId: '3',
-    senderName: 'Fatima Khan',
-    receiverName: 'Aisha Begum',
-    status: 'SENT_TO_USER',
-    message: 'Would like to get to know you better.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    senderId: '4',
-    receiverId: '1',
-    senderName: 'Omar Farooq',
-    receiverName: 'Fatima Khan',
-    status: 'ACCEPTED',
-    message: 'I liked your profile.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    senderId: '5',
-    receiverId: '2',
-    senderName: 'Hasan Raza',
-    receiverName: 'Mohammad Ali',
-    status: 'REJECTED',
-    message: 'Interested in your profile.',
-    adminNote: 'Profile not suitable',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+  { timestamps: true }
+);
+
+
+
+const RistaRequest = mongoose.models.RistaRequest || mongoose.model<IRistaRequest>('RistaRequest', RistaRequestSchema);
+
+export default RistaRequest;

@@ -7,7 +7,9 @@ export async function POST(request: Request) {
   try {
     await connectDB();
     
-    const { name, email, password, phone, city, gender } = await request.json();
+    const { name, email, password, phone, district, city, gender } = await request.json();
+
+    console.log('📝 Registration attempt:', { name, email, district, city });
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -18,17 +20,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create new user
+    // ✅ Create new user with correct role format
     const user = await User.create({
       name,
       email,
       password,
-      phone,
-      city,
-      gender,
+      phone: phone || '',
+      city: city || '',
+      district: district || 'Saran',
+      gender: gender || '',
       provider: 'email',
-      role: email === 'admin@nikah.com' ? 'admin' : 'user'
+      role: email === 'admin@nikah.com' ? 'SUPER_ADMIN' : 'USER',  // ✅ Uppercase
+      isVerified: false
     });
+
+    console.log('✅ User created:', user._id);
 
     return NextResponse.json({
       success: true,

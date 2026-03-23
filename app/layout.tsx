@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,14 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <head>
-        {/* Browser extensions ko HTML modify karne se rokna */}
-        <meta
-          name="format-detection"
-          content="telephone=no, date=no, email=no, address=no"
-        />
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

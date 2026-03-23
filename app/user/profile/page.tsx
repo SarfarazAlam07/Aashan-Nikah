@@ -3,12 +3,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiUser, FiMail, FiPhone, FiMapPin, FiBriefcase, FiGraduationCap, FiEdit2, FiSave } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+import { FiEdit2, FiSave, FiX } from 'react-icons/fi';
+import { BIHAR_DISTRICTS, ALL_CITIES } from '@/lib/locations';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,36 +30,150 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/signin');
-      return;
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        router.push('/signin');
+        return;
+      }
+      
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      
+      const token = localStorage.getItem('token');
+      
+      // Try API first
+      const response = await fetch(`/api/users/${parsedUser.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          const profile = data.user;
+          setFormData({
+            name: profile.name || parsedUser.name,
+            email: profile.email || parsedUser.email,
+            phone: profile.phone || '',
+            age: profile.age || '',
+            gender: profile.gender || '',
+            city: profile.city || '',
+            district: profile.district || 'Saran',
+            caste: profile.caste || '',
+            profession: profile.profession || '',
+            education: profile.education || '',
+            bio: profile.bio || ''
+          });
+          setSelectedDistrict(profile.district || 'Saran');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Fallback to localStorage
+      const savedProfile = localStorage.getItem(`userProfile_${parsedUser.id}`);
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        setFormData({
+          name: profile.name || parsedUser.name,
+          email: profile.email || parsedUser.email,
+          phone: profile.phone || '',
+          age: profile.age || '',
+          gender: profile.gender || '',
+          city: profile.city || '',
+          district: profile.district || 'Saran',
+          caste: profile.caste || '',
+          profession: profile.profession || '',
+          education: profile.education || '',
+          bio: profile.bio || ''
+        });
+      } else {
+        setFormData({
+          name: parsedUser.name || '',
+          email: parsedUser.email || '',
+          phone: '',
+          age: '',
+          gender: '',
+          city: '',
+          district: 'Saran',
+          caste: '',
+          profession: '',
+          education: '',
+          bio: ''
+        });
+      }
+      setSelectedDistrict('Saran');
+      setLoading(false);
+      
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      setLoading(false);
     }
-    
-    const parsed = JSON.parse(userData);
-    setUser(parsed);
-    setFormData(prev => ({ ...prev, ...parsed }));
-  }, [router]);
+  };
+
+  const filteredCities = selectedDistrict 
+    ? ALL_CITIES.filter(city => city.district === selectedDistrict)
+    : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'district') {
+      setSelectedDistrict(value);
+      setFormData(prev => ({ ...prev, city: '' }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
     
-    // Save to localStorage
-    const updatedUser = { ...user, ...formData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    setIsEditing(false);
-    alert('Profile updated!');
+    try {
+      const token = localStorage.getItem('token');
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      const response = await fetch(`/api/users/${currentUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const updatedUser = { ...currentUser, ...formData };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem(`userProfile_${currentUser.id}`, JSON.stringify(formData));
+        setUser(updatedUser);
+        toast.success('Profile updated successfully!');
+        setIsEditing(false);
+      } else {
+        toast.error(data.error || 'Failed to update');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  if (!user) {
+  const cancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
@@ -63,77 +183,186 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 h-32 relative">
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="absolute bottom-4 right-6 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-white/30 transition flex items-center gap-2"
-          >
-            {isEditing ? <FiSave /> : <FiEdit2 />}
-            {isEditing ? 'Save' : 'Edit'}
-          </button>
-        </div>
-        
-        <div className="px-6 pb-6">
-          <div className="flex items-center -mt-12 mb-4">
+      {/* Header Card */}
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl shadow-lg overflow-hidden mb-6">
+        <div className="h-28 sm:h-32 relative">
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="absolute bottom-4 right-4 sm:right-6 bg-white/20 backdrop-blur-sm text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/30 transition flex items-center gap-2 text-sm sm:text-base z-10"
+            >
+              <FiEdit2 size={16} />
+              <span>Edit Profile</span>
+            </button>
+          )}
+          
+          <div className="absolute -bottom-12 left-4 sm:left-6">
             <div className="bg-white rounded-full p-1 shadow-xl">
-              <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center text-4xl">
-                {user.gender === 'male' ? '👨' : '👩'}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center text-3xl sm:text-4xl">
+                {formData.gender === 'male' ? '👨' : '👩'}
               </div>
             </div>
-            <div className="ml-4 mt-8">
-              <h1 className="text-2xl font-bold text-gray-800">{user.name}</h1>
-              <p className="text-emerald-600">{user.email}</p>
-            </div>
           </div>
+        </div>
+        
+        <div className="px-4 sm:px-6 pb-6 pt-14 sm:pt-16 bg-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{formData.name || user?.name}</h1>
+          <p className="text-emerald-600 text-sm sm:text-base">{formData.email || user?.email}</p>
         </div>
       </div>
 
       {/* Profile Form */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6">
         {isEditing ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <InputField name="name" label="Full Name" value={formData.name} onChange={handleChange} icon={<FiUser />} />
-              <InputField name="email" label="Email" value={formData.email} onChange={handleChange} icon={<FiMail />} />
-              <InputField name="phone" label="Phone" value={formData.phone} onChange={handleChange} icon={<FiPhone />} />
-              <InputField name="age" label="Age" value={formData.age} onChange={handleChange} type="number" />
-              
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Edit Profile</h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="">Select</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
+                  required
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
               </div>
 
-              <InputField name="caste" label="Caste" value={formData.caste} onChange={handleChange} />
-              <InputField name="city" label="City" value={formData.city} onChange={handleChange} icon={<FiMapPin />} />
-              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+91 98765 43210"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                <input
+                  type="number"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  min="18"
+                  max="100"
+                  placeholder="25"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={formData.gender === 'male'}
+                      onChange={handleChange}
+                      className="accent-emerald-600"
+                    />
+                    <span>Male</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={formData.gender === 'female'}
+                      onChange={handleChange}
+                      className="accent-emerald-600"
+                    />
+                    <span>Female</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Caste</label>
+                <input
+                  type="text"
+                  name="caste"
+                  value={formData.caste}
+                  onChange={handleChange}
+                  placeholder="e.g., Sheikh, Ansari"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
                 <select
                   name="district"
                   value={formData.district}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="Saran">Saran (Chhapra)</option>
-                  <option value="Patna">Patna</option>
-                  <option value="Siwan">Siwan</option>
-                  <option value="Gopalganj">Gopalganj</option>
+                  {BIHAR_DISTRICTS.map((district) => (
+                    <option key={district.value} value={district.value}>
+                      {district.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              <InputField name="profession" label="Profession" value={formData.profession} onChange={handleChange} icon={<FiBriefcase />} />
-              <InputField name="education" label="Education" value={formData.education} onChange={handleChange} icon={<FiGraduationCap />} />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <select
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Select City</option>
+                  {filteredCities.map((city) => (
+                    <option key={city.value} value={city.value}>
+                      {city.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Profession</label>
+                <input
+                  type="text"
+                  name="profession"
+                  value={formData.profession}
+                  onChange={handleChange}
+                  placeholder="e.g., Teacher, Engineer"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Education</label>
+                <input
+                  type="text"
+                  name="education"
+                  value={formData.education}
+                  onChange={handleChange}
+                  placeholder="e.g., Graduate, MA"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
             </div>
 
             <div>
@@ -143,34 +372,50 @@ export default function ProfilePage() {
                 value={formData.bio}
                 onChange={handleChange}
                 rows={4}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500"
                 placeholder="Tell us about yourself..."
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
-            <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
-              Save Changes
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {saving ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div> : <FiSave size={16} />}
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="flex items-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              >
+                <FiX size={16} />
+                Cancel
+              </button>
+            </div>
           </form>
         ) : (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
+          <div className="space-y-5">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Profile Information</h2>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              <InfoItem icon={<FiUser />} label="Name" value={user.name} />
-              <InfoItem icon={<FiMail />} label="Email" value={user.email} />
-              <InfoItem icon={<FiPhone />} label="Phone" value={formData.phone || 'Not provided'} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoItem label="Full Name" value={formData.name || user?.name} />
+              <InfoItem label="Email" value={formData.email || user?.email} />
+              <InfoItem label="Phone" value={formData.phone || 'Not provided'} />
               <InfoItem label="Age" value={formData.age ? `${formData.age} years` : 'Not provided'} />
-              <InfoItem label="Gender" value={formData.gender || 'Not provided'} />
+              <InfoItem label="Gender" value={formData.gender === 'male' ? 'Male' : formData.gender === 'female' ? 'Female' : 'Not provided'} />
               <InfoItem label="Caste" value={formData.caste || 'Not provided'} />
-              <InfoItem icon={<FiMapPin />} label="Location" value={`${formData.city || ''}, ${formData.district}`} />
-              <InfoItem icon={<FiBriefcase />} label="Profession" value={formData.profession || 'Not provided'} />
-              <InfoItem icon={<FiGraduationCap />} label="Education" value={formData.education || 'Not provided'} />
+              <InfoItem label="City" value={formData.city || 'Not provided'} />
+              <InfoItem label="District" value={getDistrictLabel(formData.district)} />
+              <InfoItem label="Profession" value={formData.profession || 'Not provided'} />
+              <InfoItem label="Education" value={formData.education || 'Not provided'} />
             </div>
             
             {formData.bio && (
-              <div className="mt-4">
-                <h3 className="font-medium text-gray-700 mb-2">About</h3>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h3 className="font-medium text-gray-700 mb-2">About Me</h3>
                 <p className="text-gray-600 bg-gray-50 p-4 rounded-lg">{formData.bio}</p>
               </div>
             )}
@@ -181,33 +426,16 @@ export default function ProfilePage() {
   );
 }
 
-// Helper Components
-function InputField({ name, label, value, onChange, type = 'text', icon }: any) {
+function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <div className="relative">
-        {icon && <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">{icon}</span>}
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          className={`w-full ${icon ? 'pl-10' : 'px-4'} pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500`}
-        />
-      </div>
+    <div className="p-3 bg-gray-50 rounded-lg">
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-gray-800 font-medium text-sm">{value}</p>
     </div>
   );
 }
 
-function InfoItem({ icon, label, value }: any) {
-  return (
-    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-      {icon && <div className="text-emerald-600 mt-1">{icon}</div>}
-      <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-gray-800 font-medium">{value}</p>
-      </div>
-    </div>
-  );
+function getDistrictLabel(districtValue: string): string {
+  const district = BIHAR_DISTRICTS.find(d => d.value === districtValue);
+  return district?.label || districtValue;
 }

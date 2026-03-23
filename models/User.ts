@@ -14,9 +14,11 @@ export interface IUser extends Document {
   caste?: string;
   profession?: string;
   education?: string;
+  qualification?: string;  // ✅ Add for mufti
+  experience?: string;     // ✅ Add for mufti
   bio?: string;
   imageUrl?: string;
-  role: 'user' | 'admin';
+  role: 'SUPER_ADMIN' | 'MUFTI' | 'USER';
   isVerified: boolean;
   provider: 'email' | 'google';
   createdAt: Date;
@@ -37,9 +39,15 @@ const UserSchema = new Schema<IUser>(
     caste: { type: String },
     profession: { type: String },
     education: { type: String },
+    qualification: { type: String },  // ✅ Added
+    experience: { type: String },     // ✅ Added
     bio: { type: String, maxlength: 500 },
     imageUrl: { type: String },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    role: { 
+      type: String, 
+      enum: ['SUPER_ADMIN', 'MUFTI', 'USER'], 
+      default: 'USER'
+    },
     isVerified: { type: Boolean, default: false },
     provider: { type: String, enum: ['email', 'google'], default: 'email' },
   },
@@ -51,40 +59,26 @@ UserSchema.pre('save', async function(next) {
   if (!this.isModified('password') || !this.password) return next();
   
   try {
-    console.log('🔐 Hashing password...');
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    console.log('✅ Password hashed successfully');
     next();
   } catch (error: any) {
-    console.error('❌ Error hashing password:', error);
     next(error);
   }
 });
 
-// Compare password method - SIRF EK BAAR
+// Compare password method
 UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   try {
-    console.log('🔍 Comparing passwords...');
-    console.log('Stored hash exists:', !!this.password);
-    
-    if (!this.password) {
-      console.log('❌ No password stored');
-      return false;
-    }
-    
-    const isMatch = await bcrypt.compare(candidatePassword, this.password);
-    console.log('✅ Password match:', isMatch);
-    return isMatch;
+    if (!this.password) return false;
+    return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    console.error('❌ Password comparison error:', error);
     return false;
   }
 };
 
 // Create indexes
 UserSchema.index({ email: 1 });
-UserSchema.index({ city: 1, district: 1 });
-UserSchema.index({ age: 1, gender: 1 });
+UserSchema.index({ role: 1 });
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
