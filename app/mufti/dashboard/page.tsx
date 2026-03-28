@@ -1,44 +1,42 @@
-// app/admin/mufti/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   FiMail, 
   FiClock, 
   FiCheckCircle, 
   FiUsers,
-  FiMessageSquare,
   FiBookOpen,
   FiHeart,
   FiTrendingUp,
-  FiCalendar
+  FiArrowRight,
+  FiStar
 } from 'react-icons/fi';
-import { FaMosque, FaStar, FaHandPeace } from 'react-icons/fa';
+import { FaMosque, FaHandPeace } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 interface Request {
   _id: string;
-  senderName: string;
-  receiverName: string;
+  senderId: { name: string; age: number; city: string };
+  receiverId: { name: string; age: number; city: string };
   message: string;
   status: string;
   createdAt: string;
 }
 
-export default function MuftiDashboardPage() {
+export default function MuftiDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [pendingRequests, setPendingRequests] = useState<Request[]>([]);
-  const [stats, setStats] = useState({
-    totalApproved: 0,
-    totalRejected: 0,
-    pendingCount: 0,
-    approvedToday: 0,
-    thisWeek: 0
-  });
   const [loading, setLoading] = useState(true);
-  const [advice, setAdvice] = useState('');
+  const [stats, setStats] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    total: 0
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -50,210 +48,130 @@ export default function MuftiDashboardPage() {
     const parsedUser = JSON.parse(userData);
     setUser(parsedUser);
     
-    // Check if user is MUFTI
     if (parsedUser.role !== 'MUFTI') {
       toast.error('Access Denied');
-      router.push('/admin/dashboard');
+      router.push('/user/dashboard');
       return;
     }
     
-    fetchPendingRequests();
+    fetchData();
   }, [router]);
 
-  const fetchPendingRequests = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/requests?status=PENDING_ADMIN', {
+      const response = await fetch('/api/admin/requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
+      
       if (data.success) {
-        setPendingRequests(data.requests);
+        const pending = data.requests.filter((r: any) => r.status === 'PENDING_ADMIN');
+        const approved = data.requests.filter((r: any) => r.status === 'ACCEPTED');
+        const rejected = data.requests.filter((r: any) => r.status === 'REJECTED');
+        
+        setPendingRequests(pending);
         setStats({
-          ...stats,
-          pendingCount: data.requests.length
+          pending: pending.length,
+          approved: approved.length,
+          rejected: rejected.length,
+          total: data.requests.length
         });
       }
     } catch (error) {
-      console.error('Error fetching requests:', error);
-      toast.error('Failed to load requests');
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (requestId: string) => {
-    const toastId = toast.loading('Approving request...');
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/requests?requestId=${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: 'SENT_TO_USER',
-          adminNote: 'Approved by Mufti'
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success('Request approved!', { id: toastId });
-        fetchPendingRequests();
-      } else {
-        toast.error(data.error || 'Failed to approve', { id: toastId });
-      }
-    } catch (error) {
-      toast.error('Network error', { id: toastId });
-    }
-  };
-
-  const handleReject = async (requestId: string) => {
-    const reason = prompt('Please enter reason for rejection:');
-    if (!reason) return;
-    
-    const toastId = toast.loading('Rejecting request...');
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/requests?requestId=${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: 'REJECTED',
-          adminNote: reason
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success('Request rejected', { id: toastId });
-        fetchPendingRequests();
-      } else {
-        toast.error(data.error || 'Failed to reject', { id: toastId });
-      }
-    } catch (error) {
-      toast.error('Network error', { id: toastId });
-    }
-  };
-
-  const handlePostAdvice = () => {
-    if (!advice.trim()) {
-      toast.error('Please write some advice');
-      return;
-    }
-    
-    toast.success('Islamic advice posted!');
-    setAdvice('');
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70 text-sm">Loading dashboard...</p>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 to-amber-500 rounded-2xl p-6">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 10L55 25L40 40L25 25L40 10zM40 30L50 40L40 50L30 40L40 30z' fill='%23ffffff' fill-opacity='0.5'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px'
-          }}></div>
-        </div>
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl p-6 text-white">
+        <div className="absolute inset-0 islamic-pattern opacity-10"></div>
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <FaHandPeace className="text-white text-2xl" />
-            <h1 className="text-2xl font-bold text-white">Assalamu Alaikum, Mufti {user?.name?.split(' ')[0]}! 👋</h1>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-amber-100 mb-1">Assalamu Alaikum</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">Mufti {user?.name?.split(' ')[0]}! 👋</h1>
+              <p className="mt-2 text-amber-100 text-sm">Welcome to your Mufti Dashboard</p>
+            </div>
+            <div className="hidden sm:block">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <FaMosque className="text-xl" />
+              </div>
+            </div>
           </div>
-          <p className="text-amber-100 text-sm">Welcome to your dashboard. Review and approve rista requests.</p>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard 
-          label="Pending Requests" 
-          value={stats.pendingCount} 
-          icon={<FiClock size={18} />}
+          label="Pending" 
+          value={stats.pending} 
+          icon={<FiClock className="text-xl" />}
           color="amber"
         />
         <StatCard 
-          label="Approved Today" 
-          value={stats.approvedToday} 
-          icon={<FiCheckCircle size={18} />}
+          label="Approved" 
+          value={stats.approved} 
+          icon={<FiCheckCircle className="text-xl" />}
           color="green"
         />
         <StatCard 
-          label="This Week" 
-          value={stats.thisWeek} 
-          icon={<FiTrendingUp size={18} />}
-          color="blue"
+          label="Rejected" 
+          value={stats.rejected} 
+          icon={<FiHeart className="text-xl" />}
+          color="red"
         />
         <StatCard 
-          label="Total Approved" 
-          value={stats.totalApproved} 
-          icon={<FiHeart size={18} />}
-          color="purple"
+          label="Total" 
+          value={stats.total} 
+          icon={<FiTrendingUp className="text-xl" />}
+          color="blue"
         />
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Pending Requests Section */}
-        <div className="lg:col-span-2 bg-slate-800/50 rounded-xl border border-slate-700 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <FiMail className="text-amber-400" size={18} />
-            <h2 className="text-white font-semibold">Pending Requests ({stats.pendingCount})</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pending Requests Preview */}
+        <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+              <FiMail className="text-amber-500" />
+              Pending Requests
+            </h2>
+            <Link href="/mufti/requests" className="text-xs text-amber-600 hover:underline flex items-center gap-1">
+              View all <FiArrowRight size={12} />
+            </Link>
           </div>
           
           {pendingRequests.length === 0 ? (
-            <div className="text-center py-8">
-              <FiCheckCircle className="text-green-500 text-3xl mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">No pending requests. All caught up!</p>
+            <div className="text-center py-6">
+              <FiCheckCircle className="text-green-500 text-2xl mx-auto mb-2" />
+              <p className="text-gray-500 dark:text-gray-400 text-sm">No pending requests</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingRequests.slice(0, 5).map((req) => (
-                <div key={req._id} className="bg-slate-700/30 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="text-white font-medium text-sm">{req.senderName} → {req.receiverName}</p>
-                      <p className="text-xs text-gray-400 mt-1">💬 {req.message.substring(0, 60)}...</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(req._id)}
-                        className="px-3 py-1 bg-green-600 text-white rounded-lg text-xs hover:bg-green-700"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(req._id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-gray-500">
-                    {new Date(req.createdAt).toLocaleDateString()}
+              {pendingRequests.slice(0, 3).map((req) => (
+                <div key={req._id} className="bg-gray-50 dark:bg-dark-100 rounded-lg p-3">
+                  <p className="font-medium text-gray-800 dark:text-white text-sm">
+                    {req.senderId?.name} → {req.receiverId?.name}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                    {req.message}
                   </p>
                 </div>
               ))}
@@ -261,66 +179,62 @@ export default function MuftiDashboardPage() {
           )}
         </div>
 
-        {/* Islamic Advice Section */}
-        <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
+        {/* Islamic Quote */}
+        <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <FiBookOpen className="text-amber-400" size={18} />
-            <h2 className="text-white font-semibold">Islamic Advice</h2>
+            <FiBookOpen className="text-amber-500" size={18} />
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Islamic Quote</h2>
           </div>
-          
-          <textarea
-            value={advice}
-            onChange={(e) => setAdvice(e.target.value)}
-            placeholder="Share Islamic advice for the community..."
-            rows={4}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-3"
-          />
-          
-          <button
-            onClick={handlePostAdvice}
-            className="w-full py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700 transition"
-          >
-            Post Advice
-          </button>
-          
-          <div className="mt-4 pt-4 border-t border-slate-700">
-            <div className="flex items-center gap-2 mb-2">
-              <FaMosque className="text-amber-400" size={14} />
-              <p className="text-gray-400 text-xs">Recent Islamic Quote</p>
-            </div>
-            <p className="text-white text-sm italic">
+          <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4">
+            <p className="text-gray-700 dark:text-gray-300 text-sm italic leading-relaxed">
               "The best among you are those who have the best manners and character."
             </p>
-            <p className="text-gray-500 text-[10px] mt-1">— Prophet Muhammad (PBUH)</p>
+            <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
+              — Prophet Muhammad (PBUH)
+            </p>
           </div>
+          <Link
+            href="/mufti/advice"
+            className="mt-4 flex items-center justify-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition"
+          >
+            <FiBookOpen size={14} />
+            Share Islamic Advice
+            <FiArrowRight size={12} />
+          </Link>
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <FiCalendar className="text-amber-400" size={18} />
-          <h2 className="text-white font-semibold">Recent Activity</h2>
-        </div>
-        
-        <div className="space-y-3">
-          <ActivityItem 
-            icon={<FiCheckCircle className="text-green-500" />}
-            title="Request Approved"
-            description="Mohammad Ali → Fatima Khan"
-            time="2 hours ago"
+      <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+          <FiTrendingUp className="text-amber-500" />
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <QuickAction 
+            href="/mufti/requests"
+            icon={<FiMail size={18} />}
+            label="Review Requests"
+            count={stats.pending}
+            color="amber"
           />
-          <ActivityItem 
-            icon={<FiHeart className="text-red-500" />}
-            title="New Request"
-            description="Omar Farooq → Aisha Begum"
-            time="5 hours ago"
+          <QuickAction 
+            href="/mufti/profiles"
+            icon={<FiUsers size={18} />}
+            label="Browse Profiles"
+            color="blue"
           />
-          <ActivityItem 
-            icon={<FiMessageSquare className="text-blue-500" />}
-            title="Advice Posted"
-            description="Islamic guidance shared"
-            time="Yesterday"
+          <QuickAction 
+            href="/mufti/profile"
+            icon={<FiStar size={18} />}
+            label="My Profile"
+            color="purple"
+          />
+          <QuickAction 
+            href="/mufti/advice"
+            icon={<FiBookOpen size={18} />}
+            label="Share Advice"
+            color="green"
           />
         </div>
       </div>
@@ -331,37 +245,46 @@ export default function MuftiDashboardPage() {
 // Stat Card Component
 function StatCard({ label, value, icon, color }: any) {
   const colors: any = {
-    amber: 'bg-amber-500/20 text-amber-400',
-    green: 'bg-green-500/20 text-green-400',
-    blue: 'bg-blue-500/20 text-blue-400',
-    purple: 'bg-purple-500/20 text-purple-400'
+    amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+    green: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800',
+    red: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800',
+    blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800'
   };
 
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
+    <div className={`rounded-xl border p-4 ${colors[color]}`}>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-gray-400 text-xs">{label}</p>
-        <div className={`p-1.5 rounded-lg ${colors[color]}`}>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+        <div className={`p-2 rounded-lg ${colors[color]}`}>
           {icon}
         </div>
       </div>
-      <p className={`text-2xl font-bold text-white`}>{value}</p>
+      <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
     </div>
   );
 }
 
-// Activity Item Component
-function ActivityItem({ icon, title, description, time }: any) {
+// Quick Action Component
+function QuickAction({ href, icon, label, count, color }: any) {
+  const colors: any = {
+    amber: 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    blue: 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+    purple: 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+    green: 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400'
+  };
+
   return (
-    <div className="flex items-center gap-3 p-2 hover:bg-slate-700/30 rounded-lg transition">
-      <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <p className="text-white text-sm font-medium">{title}</p>
-        <p className="text-gray-400 text-xs">{description}</p>
-      </div>
-      <span className="text-gray-500 text-[10px]">{time}</span>
-    </div>
+    <Link
+      href={href}
+      className={`flex flex-col items-center gap-2 p-3 rounded-xl ${colors[color]} transition-all duration-200 hover:scale-105`}
+    >
+      {icon}
+      <span className="text-xs font-medium text-center">{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className="bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
+          {count}
+        </span>
+      )}
+    </Link>
   );
 }

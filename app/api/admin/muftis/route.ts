@@ -104,6 +104,13 @@ export async function POST(request: Request) {
       );
     }
     
+    if (password.length < 6) {
+      return NextResponse.json(
+        { success: false, error: 'Password must be at least 6 characters' },
+        { status: 400 }
+      );
+    }
+    
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -113,15 +120,12 @@ export async function POST(request: Request) {
       );
     }
     
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    // Create mufti
+    // ✅ Create mufti WITHOUT manually hashing password
+    // The pre-save hook in User model will hash it automatically
     const mufti = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password: password, // Send plain password, model will hash it
       phone: phone || '',
       city: city || '',
       qualification: qualification || '',

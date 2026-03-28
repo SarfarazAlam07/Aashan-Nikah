@@ -7,19 +7,19 @@ import {
   FiHome, 
   FiUsers, 
   FiMail, 
-  FiSettings, 
   FiLogOut, 
   FiMenu, 
   FiX,
   FiStar,
   FiBookOpen,
   FiChevronRight,
-  FiUserCheck
+  FiUser,
+  FiCompass
 } from 'react-icons/fi';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/lib/auth-context';
 
-export default function AdminLayout({
+export default function MuftiLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -29,6 +29,7 @@ export default function AdminLayout({
   const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [requestCount, setRequestCount] = useState(0);
 
   useEffect(() => {
     if (!authLoading) {
@@ -38,56 +39,84 @@ export default function AdminLayout({
         return;
       }
       
-      if (user?.role !== 'SUPER_ADMIN' && user?.role !== 'MUFTI') {
-        toast.error('Unauthorized access');
+      if (user?.role !== 'MUFTI') {
+        toast.error('Unauthorized access - Mufti only');
         setTimeout(() => router.push('/user/dashboard'), 1000);
         return;
       }
       
       setLoading(false);
+      fetchRequestCount();
     }
   }, [authLoading, isAuthenticated, user, router]);
+
+  const fetchRequestCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/requests', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const pendingCount = data.requests.filter((r: any) => r.status === 'PENDING_ADMIN').length;
+        setRequestCount(pendingCount);
+      }
+    } catch (error) {
+      console.error('Error fetching count:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
   };
 
-  // app/admin/layout.tsx - In getNavItems function
-const getNavItems = () => {
-  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
-  const isMufti = user?.role === 'MUFTI';
-  
-  const baseItems = [
-    { href: '/admin/dashboard', icon: FiHome, label: 'Dashboard' },
+  // Mufti Navigation Items
+  const navItems = [
+    { 
+      href: '/mufti/dashboard', 
+      icon: FiHome, 
+      label: 'Dashboard',
+      exact: true
+    },
+    { 
+      href: '/mufti/requests', 
+      icon: FiMail, 
+      label: 'Review Requests',
+      badge: requestCount,
+      badgeColor: 'bg-red-500'
+    },
+    { 
+      href: '/mufti/profiles', 
+      icon: FiUsers, 
+      label: 'Browse Profiles',
+      iconAlt: FiCompass
+    },
+    { 
+      href: '/mufti/profile', 
+      icon: FiUser, 
+      label: 'My Profile'
+    },
+    { 
+      href: '/mufti/advice', 
+      icon: FiBookOpen, 
+      label: 'Islamic Advice'
+    }
   ];
-  
-  if (isSuperAdmin) {
-    // Super Admin sees everything
-    baseItems.push(
-      { href: '/admin/requests', icon: FiMail, label: 'Requests' },
-      { href: '/admin/profiles', icon: FiUsers, label: 'Browse Profiles' },
-      { href: '/admin/users', icon: FiUserCheck, label: 'Users' },
-      { href: '/admin/muftis', icon: FiStar, label: 'Muftis' },
-      { href: '/admin/settings', icon: FiSettings, label: 'Settings' }
-    );
-  } else if (isMufti) {
-    // Mufti sees limited options
-    baseItems.push(
-      { href: '/admin/mufti/dashboard', icon: FiMail, label: 'Requests' },
-      { href: '/admin/profiles', icon: FiUsers, label: 'Browse Profiles' },
-      { href: '/admin/advice', icon: FiBookOpen, label: 'Islamic Advice' }
-    );
-  }
-  
-  return baseItems;
-};
+
+  // Check if route is active
+  const isActive = (href: string, exact: boolean = false) => {
+    if (exact) {
+      return pathname === href;
+    }
+    return pathname?.startsWith(href);
+  };
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-dark-400 dark:to-dark-300">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/70 text-sm">Loading Admin Panel...</p>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Loading Mufti Panel...</p>
         </div>
       </div>
     );
@@ -95,10 +124,8 @@ const getNavItems = () => {
 
   if (!user) return null;
 
-  const navItems = getNavItems();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 dark:from-dark-400 dark:to-dark-300">
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -114,21 +141,21 @@ const getNavItems = () => {
       />
 
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-slate-800/95 backdrop-blur-xl border-b border-slate-700 z-50">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-200/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 z-50">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
-              <span className="text-amber-400 text-sm">⚡</span>
+            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
+              <FiStar className="text-white text-sm" />
             </div>
-            <span className="font-bold text-white text-sm">
-              {user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Mufti Panel'}
+            <span className="font-bold text-gray-800 dark:text-white text-sm">
+              Mufti Panel
             </span>
           </div>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-slate-700 rounded-lg transition"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-dark-100 rounded-lg transition"
           >
-            <FiMenu size={20} className="text-white" />
+            <FiMenu size={20} className="text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       </div>
@@ -136,51 +163,47 @@ const getNavItems = () => {
       {/* Sidebar Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - Fixed position, proper z-index */}
+      {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-slate-800 shadow-2xl z-40
+        fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-dark-200 shadow-2xl z-40
         transform transition-transform duration-300 ease-in-out
-        lg:translate-x-0
+        lg:translate-x-0 lg:relative lg:w-64
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Sidebar Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-700">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-sm">⚡</span>
+              <FiStar className="text-white text-sm" />
             </div>
-            <span className="font-bold text-white text-sm">
-              {user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Mufti Panel'}
+            <span className="font-bold text-gray-800 dark:text-white text-sm">
+              Mufti Panel
             </span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 hover:bg-slate-700 rounded-lg transition"
+            className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-dark-100 rounded-lg transition"
           >
-            <FiX size={18} className="text-white" />
+            <FiX size={18} className="text-gray-600 dark:text-gray-400" />
           </button>
         </div>
 
-        {/* Admin Info Card */}
-        <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-amber-500/10 to-amber-600/5 rounded-xl border border-amber-500/20">
+        {/* Mufti Info Card */}
+        <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
-              {user.name?.charAt(0).toUpperCase() || 'A'}
+              {user.name?.charAt(0).toUpperCase() || 'M'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-white text-sm truncate">{user.name}</p>
-              <p className="text-xs text-gray-400 truncate">{user.email}</p>
-              <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full mt-1 ${
-                user.role === 'SUPER_ADMIN' 
-                  ? 'bg-amber-500/20 text-amber-400' 
-                  : 'bg-emerald-500/20 text-emerald-400'
-              }`}>
-                {user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Mufti'}
+              <p className="font-medium text-gray-800 dark:text-white text-sm truncate">{user.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+              <span className="inline-block text-[10px] px-2 py-0.5 rounded-full mt-1 bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                Mufti
               </span>
             </div>
           </div>
@@ -189,7 +212,8 @@ const getNavItems = () => {
         {/* Navigation */}
         <nav className="mt-6 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const active = isActive(item.href, item.exact);
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
@@ -197,27 +221,32 @@ const getNavItems = () => {
                 onClick={() => setSidebarOpen(false)}
                 className={`
                   flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group
-                  ${isActive 
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                    : 'text-gray-400 hover:text-white hover:bg-slate-700'
+                  ${active 
+                    ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-100'
                   }
                 `}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={18} className={isActive ? 'text-amber-400' : ''} />
+                  <Icon size={18} className={active ? 'text-amber-500' : ''} />
                   <span className="text-sm font-medium">{item.label}</span>
                 </div>
-                {isActive && <FiChevronRight size={14} className="text-amber-400" />}
+                {item.badge && item.badge > 0 && (
+                  <span className={`${item.badgeColor || 'bg-red-500'} text-white text-xs rounded-full w-5 h-5 flex items-center justify-center`}>
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+                {active && <FiChevronRight size={14} className="text-amber-500" />}
               </Link>
             );
           })}
         </nav>
 
         {/* Logout Button */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 bg-slate-800">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-2.5 w-full text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 group"
+            className="flex items-center gap-3 px-4 py-2.5 w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group"
           >
             <FiLogOut size={18} />
             <span className="text-sm font-medium">Logout</span>
@@ -225,7 +254,7 @@ const getNavItems = () => {
         </div>
       </aside>
 
-      {/* Main Content - Proper margin-left on desktop */}
+      {/* Main Content */}
       <div className="lg:ml-64">
         {/* Mobile top padding */}
         <div className="pt-14 lg:pt-0">

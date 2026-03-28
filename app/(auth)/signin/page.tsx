@@ -44,9 +44,15 @@ export default function SignInPage() {
         
         toast.success(`✨ Assalamu Alaikum, ${data.user.name}! ✨`);
         
-        if (data.user.role === 'SUPER_ADMIN' || data.user.role === 'MUFTI') {
+        // ✅ Updated redirect logic
+        if (data.user.role === 'SUPER_ADMIN') {
+          // Super Admin goes to admin dashboard
           window.location.href = '/admin/dashboard';
+        } else if (data.user.role === 'MUFTI') {
+          // Mufti goes to requests page (pending requests)
+          window.location.href = '/mufti/requests';
         } else {
+          // Regular user goes to profiles page
           window.location.href = '/user/profiles';
         }
       } else {
