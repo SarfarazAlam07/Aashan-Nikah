@@ -14,7 +14,7 @@ import {
   FiArrowRight,
   FiStar
 } from 'react-icons/fi';
-import { FaMosque, FaHandPeace } from 'react-icons/fa';
+import { FaMosque } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 interface Request {
@@ -118,30 +118,10 @@ export default function MuftiDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard 
-          label="Pending" 
-          value={stats.pending} 
-          icon={<FiClock className="text-xl" />}
-          color="amber"
-        />
-        <StatCard 
-          label="Approved" 
-          value={stats.approved} 
-          icon={<FiCheckCircle className="text-xl" />}
-          color="green"
-        />
-        <StatCard 
-          label="Rejected" 
-          value={stats.rejected} 
-          icon={<FiHeart className="text-xl" />}
-          color="red"
-        />
-        <StatCard 
-          label="Total" 
-          value={stats.total} 
-          icon={<FiTrendingUp className="text-xl" />}
-          color="blue"
-        />
+        <StatCard label="Pending" value={stats.pending} icon={<FiClock className="text-xl" />} color="amber" />
+        <StatCard label="Approved" value={stats.approved} icon={<FiCheckCircle className="text-xl" />} color="green" />
+        <StatCard label="Rejected" value={stats.rejected} icon={<FiHeart className="text-xl" />} color="red" />
+        <StatCard label="Total" value={stats.total} icon={<FiTrendingUp className="text-xl" />} color="blue" />
       </div>
 
       {/* Quick Actions */}
@@ -170,9 +150,7 @@ export default function MuftiDashboard() {
                   <p className="font-medium text-gray-800 dark:text-white text-sm">
                     {req.senderId?.name} → {req.receiverId?.name}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-                    {req.message}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-1">{req.message}</p>
                 </div>
               ))}
             </div>
@@ -189,60 +167,31 @@ export default function MuftiDashboard() {
             <p className="text-gray-700 dark:text-gray-300 text-sm italic leading-relaxed">
               "The best among you are those who have the best manners and character."
             </p>
-            <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">
-              — Prophet Muhammad (PBUH)
-            </p>
+            <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">— Prophet Muhammad (PBUH)</p>
           </div>
-          <Link
-            href="/mufti/advice"
-            className="mt-4 flex items-center justify-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition"
-          >
-            <FiBookOpen size={14} />
-            Share Islamic Advice
-            <FiArrowRight size={12} />
+          <Link href="/mufti/advice" className="mt-4 flex items-center justify-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition">
+            <FiBookOpen size={14} /> Share Islamic Advice <FiArrowRight size={12} />
           </Link>
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* Quick Actions Row */}
       <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-          <FiTrendingUp className="text-amber-500" />
+          <FiStar className="text-amber-500" />
           Quick Actions
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <QuickAction 
-            href="/mufti/requests"
-            icon={<FiMail size={18} />}
-            label="Review Requests"
-            count={stats.pending}
-            color="amber"
-          />
-          <QuickAction 
-            href="/mufti/profiles"
-            icon={<FiUsers size={18} />}
-            label="Browse Profiles"
-            color="blue"
-          />
-          <QuickAction 
-            href="/mufti/profile"
-            icon={<FiStar size={18} />}
-            label="My Profile"
-            color="purple"
-          />
-          <QuickAction 
-            href="/mufti/advice"
-            icon={<FiBookOpen size={18} />}
-            label="Share Advice"
-            color="green"
-          />
+          <QuickAction href="/mufti/requests" icon={<FiMail size={18} />} label="Review Requests" count={stats.pending} color="amber" />
+          <QuickAction href="/mufti/profiles" icon={<FiUsers size={18} />} label="Browse Profiles" color="blue" />
+          <QuickAction href="/mufti/profile" icon={<FiStar size={18} />} label="My Profile" color="purple" />
+          <QuickAction href="/mufti/advice" icon={<FiBookOpen size={18} />} label="Share Advice" color="green" />
         </div>
       </div>
     </div>
   );
 }
 
-// Stat Card Component
 function StatCard({ label, value, icon, color }: any) {
   const colors: any = {
     amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
@@ -255,16 +204,13 @@ function StatCard({ label, value, icon, color }: any) {
     <div className={`rounded-xl border p-4 ${colors[color]}`}>
       <div className="flex items-center justify-between mb-2">
         <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
-        <div className={`p-2 rounded-lg ${colors[color]}`}>
-          {icon}
-        </div>
+        <div className={`p-2 rounded-lg ${colors[color]}`}>{icon}</div>
       </div>
       <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
     </div>
   );
 }
 
-// Quick Action Component
 function QuickAction({ href, icon, label, count, color }: any) {
   const colors: any = {
     amber: 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-600 dark:text-amber-400',
@@ -274,16 +220,11 @@ function QuickAction({ href, icon, label, count, color }: any) {
   };
 
   return (
-    <Link
-      href={href}
-      className={`flex flex-col items-center gap-2 p-3 rounded-xl ${colors[color]} transition-all duration-200 hover:scale-105`}
-    >
+    <Link href={href} className={`flex flex-col items-center gap-2 p-3 rounded-xl ${colors[color]} transition-all duration-200 hover:scale-105`}>
       {icon}
       <span className="text-xs font-medium text-center">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">
-          {count}
-        </span>
+        <span className="bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5">{count}</span>
       )}
     </Link>
   );

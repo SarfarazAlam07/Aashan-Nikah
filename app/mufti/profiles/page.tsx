@@ -212,12 +212,12 @@ export default function MuftiProfilesPage() {
                 )}
 
                 <Link
-                  href={`/mufti/profile/${profile._id}`}
-                  className="w-full flex items-center justify-center gap-1 bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 py-2 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-dark-100 transition"
-                >
-                  <FiEye size={12} />
-                  View Details
-                </Link>
+  href={`/mufti/profile/${profile._id}`} 
+  className="w-full flex items-center justify-center gap-1 bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 py-2 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-dark-100 transition"
+>
+  <FiEye size={12} />
+  View Details
+</Link>
               </div>
             </div>
           ))}

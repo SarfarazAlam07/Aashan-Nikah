@@ -3,21 +3,21 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
+import Footer from '@/components/layout/Footer';
 
-// Optimized font loading - only essential weights
 const inter = Inter({ 
   subsets: ['latin'],
-  display: 'swap', // Prevents FOIT (Flash of Invisible Text)
+  display: 'swap',
   variable: '--font-inter',
   preload: true,
-  weight: ['400', '500', '600', '700'], // Only needed weights
+  weight: ['400', '500', '600', '700'],
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-poppins',
-  preload: false, // Load only when needed
+  preload: false,
   weight: ['600', '700'],
 });
 
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'your-google-verification-code', // Add later
+    google: 'your-google-verification-code',
   },
   alternates: {
     canonical: 'https://nikahaasan.com',
@@ -108,26 +108,15 @@ export default function RootLayout({
       className={`${inter.variable} ${poppins.variable}`}
     >
       <head>
-        {/* Preconnect for faster external resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS Prefetch for APIs */}
         <link rel="dns-prefetch" href="/api" />
-        
-        {/* Mobile viewport - already set in viewport export */}
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        
-        {/* Theme color for mobile browsers */}
         <meta name="theme-color" content="#22c55e" />
         <meta name="msapplication-TileColor" content="#22c55e" />
-        
-        {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
-        
-        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -137,7 +126,6 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <Providers>
-          {/* Skip to main content for accessibility */}
           <a 
             href="#main-content" 
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-green-600 focus:text-white focus:rounded-lg"
@@ -145,10 +133,11 @@ export default function RootLayout({
             Skip to main content
           </a>
           
-          {/* Main content */}
-          <main id="main-content">
+          <main id="main-content" className="min-h-screen">
             {children}
           </main>
+          
+          <Footer />
         </Providers>
       </body>
     </html>

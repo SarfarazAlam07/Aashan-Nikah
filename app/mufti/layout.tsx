@@ -1,80 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { 
+  FiHome, 
+  FiUsers, 
   FiMail, 
-  FiCheckCircle, 
-  FiXCircle, 
-  FiClock, 
-  FiRefreshCw,
-  FiUser,
-  FiCalendar,
-  FiMessageSquare,
-  FiChevronDown,
-  FiChevronUp,
-  FiStar
+  FiLogOut, 
+  FiMenu, 
+  FiX,
+  FiStar,
+  FiBookOpen,
+  FiChevronRight,
+  FiUser
 } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
+import { useAuth } from '@/lib/auth-context';
 
-interface Request {
-  _id: string;
-  senderId: {
-    _id: string;
-    name: string;
-    age: number;
-    city: string;
-    gender: string;
-  };
-  receiverId: {
-    _id: string;
-    name: string;
-    age: number;
-    city: string;
-    gender: string;
-  };
-  message: string;
-  status: string;
-  adminNote?: string;
-  createdAt: string;
-}
-
-export default function MuftiDashboard() {
+export default function MuftiLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [adminNote, setAdminNote] = useState('');
-  const [processing, setProcessing] = useState(false);
-  const [expandedRequest, setExpandedRequest] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
-  const [stats, setStats] = useState({
-    pending: 0,
-    total: 0
-  });
+  const pathname = usePathname();
+  const { user, logout, isAuthenticated, loading: authLoading } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
-      router.push('/signin');
-      return;
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        toast.error('Please login first');
+        setTimeout(() => router.push('/signin'), 1000);
+        return;
+      }
+      
+      if (user?.role !== 'MUFTI') {
+        toast.error('Unauthorized access - Mufti only');
+        setTimeout(() => router.push('/user/dashboard'), 1000);
+        return;
+      }
+      
+      fetchRequestCount();
     }
-    
-    const parsed = JSON.parse(userData);
-    setUser(parsed);
-    
-    if (parsed.role !== 'MUFTI') {
-      toast.error('Access Denied');
-      router.push('/user/dashboard');
-      return;
-    }
-    
-    fetchRequests();
-  }, [router]);
+  }, [authLoading, isAuthenticated, user, router]);
 
-  const fetchRequests = async () => {
-    setLoading(true);
+  const fetchRequestCount = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/admin/requests', {
@@ -82,354 +55,249 @@ export default function MuftiDashboard() {
       });
       const data = await response.json();
       if (data.success) {
-        setRequests(data.requests);
-        const pending = data.requests.filter((r: any) => r.status === 'PENDING_ADMIN').length;
-        setStats({
-          pending: pending,
-          total: data.requests.length
-        });
-      } else {
-        toast.error(data.error || 'Failed to load');
+        const pendingCount = data.requests.filter((r: any) => r.status === 'PENDING_ADMIN').length;
+        setRequestCount(pendingCount);
       }
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Network error');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching count:', error);
     }
   };
 
-  const handleApprove = async (requestId: string) => {
-    if (!adminNote.trim()) {
-      toast.error('Please add a note');
-      return;
-    }
-
-    setProcessing(true);
-    const toastId = toast.loading('Approving request...');
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/requests?requestId=${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: 'SENT_TO_USER',
-          adminNote: adminNote
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        toast.success('Request approved!', { id: toastId });
-        fetchRequests();
-        setShowModal(false);
-        setAdminNote('');
-      } else {
-        toast.error(data?.error || 'Failed to approve', { id: toastId });
-      }
-    } catch (error) {
-      console.error('Error approving request:', error);
-      toast.error('Network error', { id: toastId });
-    } finally {
-      setProcessing(false);
-    }
+  const handleLogout = () => {
+    logout();
   };
 
-  const handleReject = async (requestId: string) => {
-    if (!adminNote.trim()) {
-      toast.error('Please add a reason');
-      return;
-    }
+  const navItems = [
+    { href: '/mufti/dashboard', icon: FiHome, label: 'Dashboard', exact: true },
+    { href: '/mufti/requests', icon: FiMail, label: 'Review Requests', badge: requestCount },
+    { href: '/mufti/profiles', icon: FiUsers, label: 'Browse Profiles' },
+    { href: '/mufti/profile', icon: FiUser, label: 'My Profile' },
+    { href: '/mufti/advice', icon: FiBookOpen, label: 'Islamic Advice' }
+  ];
 
-    setProcessing(true);
-    const toastId = toast.loading('Rejecting request...');
-    
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/requests?requestId=${requestId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: 'REJECTED',
-          adminNote: adminNote
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        toast.success('Request rejected', { id: toastId });
-        fetchRequests();
-        setShowModal(false);
-        setAdminNote('');
-      } else {
-        toast.error(data?.error || 'Failed to reject', { id: toastId });
-      }
-    } catch (error) {
-      console.error('Error rejecting:', error);
-      toast.error('Network error', { id: toastId });
-    } finally {
-      setProcessing(false);
-    }
-  };
+// Replace the isActive function with this
+const isActive = (href: string, exact: boolean = false) => {
+  if (exact) {
+    return pathname === href;
+  }
+  
+  // Special handling for profile routes
+  if (href === '/mufti/profile') {
+    // My profile should only be active for exact match or profile without ID
+    return pathname === '/mufti/profile';
+  }
+  
+  if (href === '/mufti/profiles') {
+    // Browse profiles should be active for /mufti/profiles and /mufti/profiles/[id]
+    return pathname === '/mufti/profiles' || pathname?.startsWith('/mufti/profiles/');
+  }
+  
+  // For other routes, use startsWith
+  return pathname?.startsWith(href);
+};
 
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'PENDING_ADMIN':
-        return { color: 'bg-amber-500/20 text-amber-400', label: 'Pending Review', icon: FiClock };
-      case 'SENT_TO_USER':
-        return { color: 'bg-blue-500/20 text-blue-400', label: 'Sent to User', icon: FiMail };
-      case 'ACCEPTED':
-        return { color: 'bg-green-500/20 text-green-400', label: 'Accepted', icon: FiCheckCircle };
-      case 'REJECTED':
-        return { color: 'bg-red-500/20 text-red-400', label: 'Rejected', icon: FiXCircle };
-      default:
-        return { color: 'bg-gray-500/20 text-gray-400', label: status, icon: FiClock };
-    }
-  };
-
-  if (loading) {
+  if (authLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50 dark:from-dark-400 dark:to-dark-300">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Loading Mufti Panel...</p>
+        </div>
       </div>
     );
   }
 
-  // Filter only pending requests for dashboard
-  const pendingRequests = requests.filter(r => r.status === 'PENDING_ADMIN');
+  if (!user) return null;
 
   return (
-    <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl p-6 text-white">
-        <div className="absolute inset-0 islamic-pattern opacity-10"></div>
-        <div className="relative z-10">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-amber-100 mb-1">Assalamu Alaikum</p>
-              <h1 className="text-2xl sm:text-3xl font-bold">Mufti {user?.name?.split(' ')[0]}! 👋</h1>
-              <p className="mt-2 text-amber-100 text-sm">Review and approve rista requests</p>
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 dark:from-dark-400 dark:to-dark-300">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          success: { 
+            style: { background: '#f59e0b', color: 'white' },
+            iconTheme: { primary: 'white', secondary: '#f59e0b' }
+          },
+          error: { 
+            style: { background: '#ef4444', color: 'white' },
+            iconTheme: { primary: 'white', secondary: '#ef4444' }
+          },
+        }}
+      />
+
+      {/* Sidebar - Desktop */}
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white dark:bg-dark-200 shadow-xl z-20">
+        {/* Sidebar Header */}
+        <div className="h-16 flex items-center px-5 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
+              <FiStar className="text-white text-sm" />
             </div>
-            <div className="hidden sm:block">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <FiStar className="text-xl" />
-              </div>
+            <span className="font-bold text-gray-800 dark:text-white text-sm">Mufti Panel</span>
+          </div>
+        </div>
+
+        {/* Mufti Info Card */}
+        <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+              {user.name?.charAt(0).toUpperCase() || 'M'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-gray-800 dark:text-white text-sm truncate">{user.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+              <span className="inline-block text-[10px] px-2 py-0.5 rounded-full mt-1 bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                Mufti
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Pending Requests</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.pending}</p>
-        </div>
-        <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-sm">Total Processed</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
-        </div>
-      </div>
-
-      {/* Refresh Button */}
-      <div className="flex justify-end">
-        <button
-          onClick={fetchRequests}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-100 transition"
-        >
-          <FiRefreshCw size={14} />
-          <span className="text-sm">Refresh</span>
-        </button>
-      </div>
-
-      {/* Requests List */}
-      {pendingRequests.length === 0 ? (
-        <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <FiCheckCircle className="text-4xl text-green-500 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">No pending requests to review</p>
-          <p className="text-sm text-gray-400 mt-2">All requests have been processed!</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {pendingRequests.map((request) => {
-            const statusBadge = getStatusBadge(request.status);
-            const StatusIcon = statusBadge.icon;
-            const isExpanded = expandedRequest === request._id;
-            
+        {/* Navigation */}
+        <nav className="flex-1 mt-6 px-3 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const active = isActive(item.href, item.exact);
+            const Icon = item.icon;
             return (
-              <div key={request._id} className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="flex-1">
-                      {/* Sender & Receiver */}
-                      <div className="flex items-center gap-3 mb-3 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
-                            {request.senderId?.name?.charAt(0) || 'S'}
-                          </div>
-                          <div>
-                            <p className="text-gray-800 dark:text-white font-medium">{request.senderId?.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {request.senderId?.age} yrs • {request.senderId?.city}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <FiMail className="text-gray-400" size={16} />
-                        
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-xl flex items-center justify-center text-pink-600 dark:text-pink-400 font-bold">
-                            {request.receiverId?.name?.charAt(0) || 'R'}
-                          </div>
-                          <div>
-                            <p className="text-gray-800 dark:text-white font-medium">{request.receiverId?.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {request.receiverId?.age} yrs • {request.receiverId?.city}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Message */}
-                      <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3 mb-3">
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                          💬 {request.message}
-                        </p>
-                      </div>
-                      
-                      {/* Status & Date */}
-                      <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusBadge.color}`}>
-                          <StatusIcon size={12} />
-                          {statusBadge.label}
-                        </span>
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <FiCalendar size={12} />
-                          {new Date(request.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedRequest(request);
-                          setShowModal(true);
-                          setAdminNote('');
-                        }}
-                        className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700 transition"
-                      >
-                        Review
-                      </button>
-                      <button
-                        onClick={() => setExpandedRequest(isExpanded ? null : request._id)}
-                        className="p-2 bg-gray-100 dark:bg-dark-100 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-100 transition"
-                      >
-                        {isExpanded ? <FiChevronUp size={16} /> : <FiChevronDown size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Expanded Content */}
-                  {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3">
-                          <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Sender Details</p>
-                          <p className="text-gray-800 dark:text-white text-sm">{request.senderId?.name}</p>
-                          <p className="text-gray-500 text-xs">{request.senderId?.age} years</p>
-                          <p className="text-gray-500 text-xs">{request.senderId?.city}</p>
-                          <p className="text-gray-500 text-xs capitalize">{request.senderId?.gender}</p>
-                        </div>
-                        <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3">
-                          <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Receiver Details</p>
-                          <p className="text-gray-800 dark:text-white text-sm">{request.receiverId?.name}</p>
-                          <p className="text-gray-500 text-xs">{request.receiverId?.age} years</p>
-                          <p className="text-gray-500 text-xs">{request.receiverId?.city}</p>
-                          <p className="text-gray-500 text-xs capitalize">{request.receiverId?.gender}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`
+                  flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group
+                  ${active 
+                    ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-100'
+                  }
+                `}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon size={18} className={active ? 'text-amber-500' : ''} />
+                  <span className="text-sm font-medium">{item.label}</span>
                 </div>
-              </div>
+                {item.badge && item.badge > 0 && (
+                  <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+                {active && <FiChevronRight size={14} className="text-amber-500" />}
+              </Link>
             );
           })}
+        </nav>
+
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2.5 w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group"
+          >
+            <FiLogOut size={18} />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
         </div>
-      )}
+      </aside>
 
-      {/* Review Modal */}
-      {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-dark-200 rounded-2xl max-w-md w-full">
-            <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Review Request</h3>
-              
-              <div className="space-y-4 mb-6">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3">
-                    <p className="text-gray-500 dark:text-gray-400 text-xs">Sender</p>
-                    <p className="text-gray-800 dark:text-white font-medium">{selectedRequest.senderId?.name}</p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3">
-                    <p className="text-gray-500 dark:text-gray-400 text-xs">Receiver</p>
-                    <p className="text-gray-800 dark:text-white font-medium">{selectedRequest.receiverId?.name}</p>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-3">
-                  <p className="text-gray-500 dark:text-gray-400 text-xs">Message</p>
-                  <p className="text-gray-800 dark:text-white">{selectedRequest.message}</p>
-                </div>
-                
-                <div>
-                  <label className="block text-gray-600 dark:text-gray-400 text-sm mb-2">Admin Note *</label>
-                  <textarea
-                    value={adminNote}
-                    onChange={(e) => setAdminNote(e.target.value)}
-                    rows={3}
-                    placeholder="Add your notes or reason..."
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-dark-100 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-800 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+      {/* Mobile Sidebar */}
+      <div className={`
+        fixed inset-0 z-40 lg:hidden
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+        <div className="relative w-72 h-full bg-white dark:bg-dark-200 shadow-xl">
+          <div className="h-16 flex items-center justify-between px-5 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
+                <FiStar className="text-white text-sm" />
               </div>
+              <span className="font-bold text-gray-800 dark:text-white text-sm">Mufti Panel</span>
+            </div>
+            <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark-100 rounded-lg">
+              <FiX size={18} className="text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleApprove(selectedRequest._id)}
-                  disabled={processing}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => handleReject(selectedRequest._id)}
-                  disabled={processing}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50"
-                >
-                  Reject
-                </button>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-100 dark:bg-dark-100 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-dark-100"
-                >
-                  Cancel
-                </button>
+          <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                {user.name?.charAt(0).toUpperCase() || 'M'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-800 dark:text-white text-sm truncate">{user.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full mt-1 bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  Mufti
+                </span>
               </div>
             </div>
           </div>
+
+          <nav className="flex-1 mt-6 px-3 space-y-1 overflow-y-auto">
+            {navItems.map((item) => {
+              const active = isActive(item.href, item.exact);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`
+                    flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 group
+                    ${active 
+                      ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800' 
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-100'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} className={active ? 'text-amber-500' : ''} />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </div>
+                  {item.badge && item.badge > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                  {active && <FiChevronRight size={14} className="text-amber-500" />}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-4 py-2.5 w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200"
+            >
+              <FiLogOut size={18} />
+              <span className="text-sm font-medium">Logout</span>
+            </button>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 dark:bg-dark-200/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 z-30">
+        <div className="flex items-center justify-between px-4 h-14">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg flex items-center justify-center">
+              <FiStar className="text-white text-sm" />
+            </div>
+            <span className="font-bold text-gray-800 dark:text-white text-sm">Mufti Panel</span>
+          </div>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark-100 rounded-lg">
+            <FiMenu size={20} className="text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
