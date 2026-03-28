@@ -1,7 +1,6 @@
-﻿// app/(auth)/signup/page.tsx
-'use client';
+﻿'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -13,9 +12,11 @@ import {
   FaMosque, 
   FaStar,
   FaHandPeace,
-  FaVenusMars
+  FaVenusMars,
+  FaArrowRight,
+  FaSearch
 } from 'react-icons/fa';
-import { FiEye, FiEyeOff, FiUserPlus } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiUserPlus, FiArrowLeft, FiX } from 'react-icons/fi';
 import { BIHAR_DISTRICTS, ALL_CITIES } from '@/lib/locations';
 
 export default function SignUpPage() {
@@ -26,6 +27,19 @@ export default function SignUpPage() {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // For custom district/city input
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [citySearch, setCitySearch] = useState('');
+  const [showDistrictDropdown, setShowDistrictDropdown] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [customDistrict, setCustomDistrict] = useState('');
+  const [customCity, setCustomCity] = useState('');
+  const [isCustomDistrict, setIsCustomDistrict] = useState(false);
+  const [isCustomCity, setIsCustomCity] = useState(false);
+  
+  const districtRef = useRef<HTMLDivElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -38,20 +52,74 @@ export default function SignUpPage() {
     gender: ''
   });
 
-  const filteredCities = selectedDistrict 
-    ? ALL_CITIES.filter(city => city.district === selectedDistrict)
+  // Filter districts based on search
+  const filteredDistricts = BIHAR_DISTRICTS.filter(district =>
+    district.label.toLowerCase().includes(districtSearch.toLowerCase())
+  );
+
+  // Filter cities based on selected district and search
+  const filteredCities = selectedDistrict && !isCustomDistrict
+    ? ALL_CITIES.filter(city => 
+        city.district === selectedDistrict && 
+        city.label.toLowerCase().includes(citySearch.toLowerCase())
+      )
     : [];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (districtRef.current && !districtRef.current.contains(event.target as Node)) {
+        setShowDistrictDropdown(false);
+      }
+      if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
+        setShowCityDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
-    if (name === 'district') {
-      setSelectedDistrict(value);
-      setFormData(prev => ({ ...prev, city: '' }));
-    }
-    
     setError('');
+  };
+
+  const selectDistrict = (districtValue: string, districtLabel: string) => {
+    setSelectedDistrict(districtValue);
+    setFormData(prev => ({ ...prev, district: districtLabel, city: '' }));
+    setDistrictSearch('');
+    setShowDistrictDropdown(false);
+    setIsCustomDistrict(false);
+    setCustomDistrict('');
+    setCitySearch('');
+  };
+
+  const selectCustomDistrict = () => {
+    if (customDistrict.trim()) {
+      setSelectedDistrict('custom');
+      setFormData(prev => ({ ...prev, district: customDistrict.trim(), city: '' }));
+      setShowDistrictDropdown(false);
+      setIsCustomDistrict(true);
+      setDistrictSearch('');
+    }
+  };
+
+  const selectCity = (cityValue: string, cityLabel: string) => {
+    setFormData(prev => ({ ...prev, city: cityLabel }));
+    setCitySearch('');
+    setShowCityDropdown(false);
+    setIsCustomCity(false);
+    setCustomCity('');
+  };
+
+  const selectCustomCity = () => {
+    if (customCity.trim()) {
+      setFormData(prev => ({ ...prev, city: customCity.trim() }));
+      setShowCityDropdown(false);
+      setIsCustomCity(true);
+      setCitySearch('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +141,7 @@ export default function SignUpPage() {
     }
 
     if (!formData.district) {
-      setError('Please select your district');
+      setError('Please select or enter your district');
       setLoading(false);
       return;
     }
@@ -114,57 +182,58 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Islamic Pattern Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900">
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 10L55 25L40 40L25 25L40 10zM40 30L50 40L40 50L30 40L40 30z' fill='%23ffffff' fill-opacity='0.3'/%3E%3C/svg%3E")`,
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 10L55 25L40 40L25 25L40 10zM40 30L50 40L40 50L30 40L40 30z' fill='%23ffffff' fill-opacity='0.5'/%3E%3C/svg%3E")`,
           backgroundSize: '60px 60px'
         }}></div>
-        
-        {/* Decorative Elements */}
-        <div className="absolute top-10 left-5 text-emerald-500/10 text-7xl transform -rotate-12 hidden lg:block">🕌</div>
-        <div className="absolute bottom-10 right-5 text-emerald-500/10 text-7xl transform rotate-12 hidden lg:block">☪️</div>
-        <div className="absolute top-1/4 right-1/4 text-emerald-500/5 text-5xl animate-pulse hidden lg:block">⭐</div>
       </div>
+      
+      {/* Floating Ornaments */}
+      <div className="absolute top-10 left-5 text-amber-500/5 text-6xl animate-float hidden lg:block">🕌</div>
+      <div className="absolute bottom-10 right-5 text-amber-500/5 text-6xl animate-float hidden lg:block" style={{ animationDelay: '2s' }}>☪️</div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4 py-8">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md animate-slide-up">
+          
           {/* Logo & Title */}
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl shadow-lg mb-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/5 backdrop-blur-sm rounded-2xl shadow-lg mb-3 ring-1 ring-amber-500/30">
               <span className="text-4xl">🕌</span>
             </div>
             <h1 className="text-2xl font-bold text-white mb-1">Nikah Aasan</h1>
-            <p className="text-emerald-200/80 text-xs">हलाल इस्लामिक मैट्रिमोनी</p>
+            <p className="text-amber-200/70 text-xs">हलाल इस्लामिक मैट्रिमोनी</p>
             <div className="flex justify-center gap-1 mt-2">
               {[...Array(5)].map((_, i) => (
-                <FaStar key={i} className="text-yellow-400/50 text-[10px]" />
+                <FaStar key={i} className="text-amber-400/50 text-[10px] animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
               ))}
             </div>
           </div>
 
           {/* Sign Up Card */}
-          <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
             <div className="p-6">
+              
               {/* Header */}
               <div className="text-center mb-5">
-                <div className="inline-flex items-center justify-center w-10 h-10 bg-emerald-500/20 rounded-full mb-2">
-                  <FiUserPlus className="text-emerald-400 text-lg" />
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-amber-500/20 rounded-full mb-2 ring-1 ring-amber-500/30">
+                  <FiUserPlus className="text-amber-400 text-lg" />
                 </div>
                 <h2 className="text-lg font-semibold text-white">Create Account</h2>
-                <p className="text-emerald-200/70 text-xs mt-1">Join our Islamic community</p>
+                <p className="text-gray-400 text-xs mt-1">Join our Islamic community</p>
               </div>
 
               {/* Error/Success Messages */}
               {error && (
-                <div className="mb-4 p-2.5 bg-red-500/20 border border-red-500/50 rounded-xl text-white text-xs text-center">
-                  ⚠️ {error}
+                <div className="mb-4 p-2.5 bg-red-500/20 border border-red-500/50 rounded-xl text-white text-xs text-center animate-fade-in">
+                  <span className="inline-block mr-1">⚠️</span> {error}
                 </div>
               )}
               {success && (
-                <div className="mb-4 p-2.5 bg-green-500/20 border border-green-500/50 rounded-xl text-white text-xs text-center">
+                <div className="mb-4 p-2.5 bg-green-500/20 border border-green-500/50 rounded-xl text-white text-xs text-center animate-fade-in">
                   ✓ {success} Redirecting...
                 </div>
               )}
@@ -173,9 +242,9 @@ export default function SignUpPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Full Name */}
                 <div>
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaUser className="text-emerald-400/60 text-sm" />
+                      <FaUser className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
                     <input
                       type="text"
@@ -184,16 +253,16 @@ export default function SignUpPage() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaEnvelope className="text-emerald-400/60 text-sm" />
+                      <FaEnvelope className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
                     <input
                       type="email"
@@ -202,16 +271,16 @@ export default function SignUpPage() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                     />
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaPhone className="text-emerald-400/60 text-sm" />
+                      <FaPhone className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
                     <input
                       type="tel"
@@ -219,96 +288,180 @@ export default function SignUpPage() {
                       placeholder="Phone Number (optional)"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                     />
                   </div>
                 </div>
 
-                {/* District */}
-                <div>
-                  <div className="relative">
+                {/* District - Custom Searchable Dropdown */}
+                <div ref={districtRef} className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaMapMarkerAlt className="text-emerald-400/60 text-sm" />
+                      <FaMapMarkerAlt className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
-                    <select
-                      name="district"
-                      value={formData.district}
-                      onChange={handleChange}
-                      required
-                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none"
-                    >
-                      <option value="" className="bg-gray-800">Select District</option>
-                      {BIHAR_DISTRICTS.map((district) => (
-                        <option key={district.value} value={district.value} className="bg-gray-800">
-                          {district.label}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      type="text"
+                      placeholder={formData.district ? formData.district : "Search or type district..."}
+                      value={districtSearch}
+                      onChange={(e) => {
+                        setDistrictSearch(e.target.value);
+                        setShowDistrictDropdown(true);
+                        setIsCustomDistrict(false);
+                      }}
+                      onFocus={() => setShowDistrictDropdown(true)}
+                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
+                    />
+                    {formData.district && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, district: '' }));
+                          setSelectedDistrict('');
+                          setDistrictSearch('');
+                          setIsCustomDistrict(false);
+                          setCustomDistrict('');
+                        }}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white"
+                      >
+                        <FiX size={16} />
+                      </button>
+                    )}
                   </div>
+                  
+                  {showDistrictDropdown && (
+                    <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-slate-800 border border-slate-700 rounded-xl shadow-lg">
+                      {filteredDistricts.length > 0 ? (
+                        filteredDistricts.map((district) => (
+                          <button
+                            key={district.value}
+                            type="button"
+                            onClick={() => selectDistrict(district.value, district.label)}
+                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 transition-colors"
+                          >
+                            {district.label}
+                          </button>
+                        ))
+                      ) : (
+                        <>
+                          <div className="px-4 py-2 text-sm text-gray-400 border-b border-slate-700">
+                            No matching district
+                          </div>
+                          {districtSearch.trim() && (
+                            <button
+                              type="button"
+                              onClick={selectCustomDistrict}
+                              className="w-full text-left px-4 py-2 text-sm text-amber-400 hover:bg-slate-700 transition-colors"
+                            >
+                              + Add "{districtSearch}" as custom district
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* City */}
-                <div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaMapMarkerAlt className="text-emerald-400/60 text-sm" />
+                {/* City - Custom Searchable Dropdown (only if district selected) */}
+                {selectedDistrict && (
+                  <div ref={cityRef} className="relative">
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <FaMapMarkerAlt className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder={formData.city ? formData.city : "Search or type city..."}
+                        value={citySearch}
+                        onChange={(e) => {
+                          setCitySearch(e.target.value);
+                          setShowCityDropdown(true);
+                          setIsCustomCity(false);
+                        }}
+                        onFocus={() => setShowCityDropdown(true)}
+                        className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
+                      />
+                      {formData.city && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, city: '' }))}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white"
+                        >
+                          <FiX size={16} />
+                        </button>
+                      )}
                     </div>
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      disabled={!formData.district}
-                      className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 appearance-none"
-                    >
-                      <option value="" className="bg-gray-800">
-                        {formData.district ? "Select City" : "Select District First"}
-                      </option>
-                      {filteredCities.map((city) => (
-                        <option key={city.value} value={city.value} className="bg-gray-800">
-                          {city.label}
-                        </option>
-                      ))}
-                    </select>
+                    
+                    {showCityDropdown && (
+                      <div className="absolute z-20 mt-1 w-full max-h-48 overflow-y-auto bg-slate-800 border border-slate-700 rounded-xl shadow-lg">
+                        {filteredCities.length > 0 ? (
+                          filteredCities.map((city) => (
+                            <button
+                              key={city.value}
+                              type="button"
+                              onClick={() => selectCity(city.value, city.label)}
+                              className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 transition-colors"
+                            >
+                              {city.label}
+                            </button>
+                          ))
+                        ) : (
+                          <>
+                            <div className="px-4 py-2 text-sm text-gray-400 border-b border-slate-700">
+                              No matching city
+                            </div>
+                            {citySearch.trim() && (
+                              <button
+                                type="button"
+                                onClick={selectCustomCity}
+                                className="w-full text-left px-4 py-2 text-sm text-amber-400 hover:bg-slate-700 transition-colors"
+                              >
+                                + Add "{citySearch}" as custom city
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
                 {/* Gender */}
                 <div>
                   <div className="flex gap-4">
-                    <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-white text-sm cursor-pointer group">
                       <input
                         type="radio"
                         name="gender"
                         value="male"
                         checked={formData.gender === 'male'}
                         onChange={handleChange}
-                        className="accent-emerald-500 w-4 h-4"
+                        className="accent-amber-500 w-4 h-4"
                         required
                       />
-                      <FaVenusMars className="text-blue-400" size={14} />
-                      Male
+                      <FaVenusMars className="text-blue-400 group-hover:scale-110 transition" size={14} />
+                      <span>Male</span>
                     </label>
-                    <label className="flex items-center gap-2 text-white text-sm cursor-pointer">
+                    <label className="flex items-center gap-2 text-white text-sm cursor-pointer group">
                       <input
                         type="radio"
                         name="gender"
                         value="female"
                         checked={formData.gender === 'female'}
                         onChange={handleChange}
-                        className="accent-emerald-500 w-4 h-4"
+                        className="accent-amber-500 w-4 h-4"
                         required
                       />
-                      <FaVenusMars className="text-pink-400" size={14} />
-                      Female
+                      <FaVenusMars className="text-pink-400 group-hover:scale-110 transition" size={14} />
+                      <span>Female</span>
                     </label>
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaLock className="text-emerald-400/60 text-sm" />
+                      <FaLock className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -318,12 +471,12 @@ export default function SignUpPage() {
                       onChange={handleChange}
                       required
                       minLength={6}
-                      className="w-full pl-9 pr-10 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-10 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/50 hover:text-white/80"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition"
                     >
                       {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </button>
@@ -332,9 +485,9 @@ export default function SignUpPage() {
 
                 {/* Confirm Password */}
                 <div>
-                  <div className="relative">
+                  <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FaLock className="text-emerald-400/60 text-sm" />
+                      <FaLock className="text-gray-500 group-focus-within:text-amber-400 transition" size={14} />
                     </div>
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
@@ -343,12 +496,12 @@ export default function SignUpPage() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
-                      className="w-full pl-9 pr-10 py-2.5 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-10 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-300"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-white/50 hover:text-white/80"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition"
                     >
                       {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                     </button>
@@ -359,7 +512,7 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-xl font-medium text-sm hover:from-emerald-500 hover:to-emerald-400 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50"
+                  className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium text-sm hover:from-amber-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 shadow-lg group"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -371,8 +524,9 @@ export default function SignUpPage() {
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
-                      <FaHandPeace className="text-white/80" size={14} />
+                      <FaHandPeace className="group-hover:scale-110 transition" size={14} />
                       Sign Up
+                      <FaArrowRight size={12} className="group-hover:translate-x-1 transition" />
                     </span>
                   )}
                 </button>
@@ -381,27 +535,30 @@ export default function SignUpPage() {
               {/* Divider */}
               <div className="relative my-5">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/20"></div>
+                  <div className="w-full border-t border-white/10"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-transparent text-emerald-200/60">Already have an account?</span>
+                  <span className="px-3 bg-transparent text-gray-500">Already have an account?</span>
                 </div>
               </div>
 
               {/* Sign In Link */}
               <Link
                 href="/signin"
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border border-white/20 text-white rounded-xl hover:bg-white/10 transition font-medium text-sm"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-all duration-300 group"
               >
-                <FaMosque size={14} />
-                Sign In
+                <FaMosque size={14} className="group-hover:scale-110 transition" />
+                <span>Sign In</span>
+                <FiArrowLeft size={12} className="group-hover:-translate-x-1 transition" />
               </Link>
 
               {/* Islamic Quote */}
               <div className="mt-5 text-center">
-                <p className="text-emerald-200/50 text-[11px] leading-relaxed">
-                  "And among His signs is that He created for you spouses from among yourselves"<br />
-                  <span className="text-emerald-300/40 text-[9px]">Surah Ar-Rum, 30:21</span>
+                <p className="text-gray-500 text-[11px] leading-relaxed">
+                  "And among His signs is that He created for you spouses from among yourselves"
+                </p>
+                <p className="text-gray-600 text-[9px] mt-1">
+                  Surah Ar-Rum, 30:21
                 </p>
               </div>
             </div>
@@ -409,10 +566,10 @@ export default function SignUpPage() {
 
           {/* Footer */}
           <div className="text-center mt-5">
-            <p className="text-white/40 text-[10px]">
-              © 2024 Nikah Aasan | Islamic Matrimony
+            <p className="text-gray-600 text-[10px]">
+              © 2025 Nikah Aasan | Islamic Matrimony
             </p>
-            <p className="text-emerald-300/30 text-[9px] mt-1">
+            <p className="text-gray-700 text-[9px] mt-1">
               Patna • Chhapra • Siwan • Gopalganj • Muzaffarpur
             </p>
           </div>

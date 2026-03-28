@@ -14,8 +14,8 @@ export interface IUser extends Document {
   caste?: string;
   profession?: string;
   education?: string;
-  qualification?: string;  // ✅ Add for mufti
-  experience?: string;     // ✅ Add for mufti
+  qualification?: string;
+  experience?: string;
   bio?: string;
   imageUrl?: string;
   role: 'SUPER_ADMIN' | 'MUFTI' | 'USER';
@@ -29,7 +29,13 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    email: { 
+      type: String, 
+      required: true, 
+      unique: true,  // ✅ This creates index automatically
+      lowercase: true, 
+      trim: true 
+    },
     password: { type: String, select: false },
     phone: { type: String, trim: true },
     age: { type: Number, min: 18, max: 100 },
@@ -39,8 +45,8 @@ const UserSchema = new Schema<IUser>(
     caste: { type: String },
     profession: { type: String },
     education: { type: String },
-    qualification: { type: String },  // ✅ Added
-    experience: { type: String },     // ✅ Added
+    qualification: { type: String },
+    experience: { type: String },
     bio: { type: String, maxlength: 500 },
     imageUrl: { type: String },
     role: { 
@@ -77,8 +83,13 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   }
 };
 
-// Create indexes
-UserSchema.index({ email: 1 });
+// ✅ Create indexes - Remove email index from here (already unique: true)
+// Only create additional indexes for other fields
+UserSchema.index({ city: 1, district: 1 });
+UserSchema.index({ age: 1, gender: 1 });
 UserSchema.index({ role: 1 });
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+// ✅ Check if model exists before creating
+const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+
+export default User;

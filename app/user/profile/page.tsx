@@ -1,4 +1,3 @@
-// app/user/profile/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,7 +45,6 @@ export default function ProfilePage() {
       
       const token = localStorage.getItem('token');
       
-      // Try API first
       const response = await fetch(`/api/users/${parsedUser.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -74,7 +72,6 @@ export default function ProfilePage() {
         }
       }
       
-      // Fallback to localStorage
       const savedProfile = localStorage.getItem(`userProfile_${parsedUser.id}`);
       if (savedProfile) {
         const profile = JSON.parse(savedProfile);
@@ -176,7 +173,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -184,7 +181,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header Card */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl shadow-lg overflow-hidden mb-6">
+      <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl shadow-lg overflow-hidden mb-6">
         <div className="h-28 sm:h-32 relative">
           {!isEditing && (
             <button
@@ -198,7 +195,7 @@ export default function ProfilePage() {
           
           <div className="absolute -bottom-12 left-4 sm:left-6">
             <div className="bg-white rounded-full p-1 shadow-xl">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center text-3xl sm:text-4xl">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-full flex items-center justify-center text-3xl sm:text-4xl">
                 {formData.gender === 'male' ? '👨' : '👩'}
               </div>
             </div>
@@ -207,7 +204,7 @@ export default function ProfilePage() {
         
         <div className="px-4 sm:px-6 pb-6 pt-14 sm:pt-16 bg-white">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">{formData.name || user?.name}</h1>
-          <p className="text-emerald-600 text-sm sm:text-base">{formData.email || user?.email}</p>
+          <p className="text-amber-600 text-sm sm:text-base">{formData.email || user?.email}</p>
         </div>
       </div>
 
@@ -226,7 +223,7 @@ export default function ProfilePage() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -249,7 +246,7 @@ export default function ProfilePage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+91 98765 43210"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -263,7 +260,7 @@ export default function ProfilePage() {
                   min="18"
                   max="100"
                   placeholder="25"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -277,7 +274,7 @@ export default function ProfilePage() {
                       value="male"
                       checked={formData.gender === 'male'}
                       onChange={handleChange}
-                      className="accent-emerald-600"
+                      className="accent-amber-500"
                     />
                     <span>Male</span>
                   </label>
@@ -288,7 +285,7 @@ export default function ProfilePage() {
                       value="female"
                       checked={formData.gender === 'female'}
                       onChange={handleChange}
-                      className="accent-emerald-600"
+                      className="accent-amber-500"
                     />
                     <span>Female</span>
                   </label>
@@ -303,7 +300,7 @@ export default function ProfilePage() {
                   value={formData.caste}
                   onChange={handleChange}
                   placeholder="e.g., Sheikh, Ansari"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -313,7 +310,7 @@ export default function ProfilePage() {
                   name="district"
                   value={formData.district}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 >
                   {BIHAR_DISTRICTS.map((district) => (
                     <option key={district.value} value={district.value}>
@@ -329,7 +326,7 @@ export default function ProfilePage() {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 >
                   <option value="">Select City</option>
                   {filteredCities.map((city) => (
@@ -348,7 +345,7 @@ export default function ProfilePage() {
                   value={formData.profession}
                   onChange={handleChange}
                   placeholder="e.g., Teacher, Engineer"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
@@ -360,7 +357,7 @@ export default function ProfilePage() {
                   value={formData.education}
                   onChange={handleChange}
                   placeholder="e.g., Graduate, MA"
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -373,7 +370,7 @@ export default function ProfilePage() {
                 onChange={handleChange}
                 rows={4}
                 placeholder="Tell us about yourself..."
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
@@ -381,7 +378,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
               >
                 {saving ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div> : <FiSave size={16} />}
                 Save Changes
@@ -401,16 +398,55 @@ export default function ProfilePage() {
             <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Profile Information</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InfoItem label="Full Name" value={formData.name || user?.name} />
-              <InfoItem label="Email" value={formData.email || user?.email} />
-              <InfoItem label="Phone" value={formData.phone || 'Not provided'} />
-              <InfoItem label="Age" value={formData.age ? `${formData.age} years` : 'Not provided'} />
-              <InfoItem label="Gender" value={formData.gender === 'male' ? 'Male' : formData.gender === 'female' ? 'Female' : 'Not provided'} />
-              <InfoItem label="Caste" value={formData.caste || 'Not provided'} />
-              <InfoItem label="City" value={formData.city || 'Not provided'} />
-              <InfoItem label="District" value={getDistrictLabel(formData.district)} />
-              <InfoItem label="Profession" value={formData.profession || 'Not provided'} />
-              <InfoItem label="Education" value={formData.education || 'Not provided'} />
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Full Name</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.name || user?.name}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Email</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.email || user?.email}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Phone</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.phone || 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Age</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.age ? `${formData.age} years` : 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Gender</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.gender === 'male' ? 'Male' : formData.gender === 'female' ? 'Female' : 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Caste</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.caste || 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">City</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.city || 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">District</p>
+                <p className="text-gray-800 font-medium text-sm">{getDistrictLabel(formData.district)}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Profession</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.profession || 'Not provided'}</p>
+              </div>
+              
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-500">Education</p>
+                <p className="text-gray-800 font-medium text-sm">{formData.education || 'Not provided'}</p>
+              </div>
             </div>
             
             {formData.bio && (
@@ -422,15 +458,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-3 bg-gray-50 rounded-lg">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-gray-800 font-medium text-sm">{value}</p>
     </div>
   );
 }

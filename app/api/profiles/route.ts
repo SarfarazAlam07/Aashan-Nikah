@@ -32,9 +32,9 @@ export async function GET(request: Request) {
     
     // Build query
     const query: any = {
-      role: 'user', // Sirf users show karo
-      isVerified: true // Sirf verified profiles
-    };
+  role: 'USER',  // ✅ Uppercase
+  // isVerified: true
+};
     
     // Exclude current user
     if (currentUserId && currentUserId !== 'super-admin') {
@@ -75,18 +75,16 @@ export async function GET(request: Request) {
     console.log('🔍 Profiles query:', JSON.stringify(query, null, 2));
     
     // Get profiles (exclude sensitive info)
-    const profiles = await User.find(query)
-      .select('name age gender city district caste profession education bio imageUrl isVerified createdAt')
-      .sort({ createdAt: -1 })
-      .limit(100);
-    
-    console.log(`✅ Found ${profiles.length} profiles`);
-    
-    return NextResponse.json({
-      success: true,
-      count: profiles.length,
-      profiles
-    });
+const profiles = await User.find(query)
+  .select('name age gender city district caste profession education bio imageUrl isVerified createdAt')
+  .sort({ createdAt: -1 })
+  .limit(100);
+
+return NextResponse.json({
+  success: true,
+  count: profiles.length,
+  profiles
+});
     
   } catch (error) {
     console.error('Error fetching profiles:', error);
