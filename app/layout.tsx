@@ -37,6 +37,9 @@ export const metadata: Metadata = {
   description: 'Barkati Nikah Service - India\'s most trusted halal Islamic matrimony platform by Maulana Farooq. Serving Patna, Chhapra & across Bihar. Find your halal life partner.',
   keywords: [
     'Barkati Nikah Service',
+    'Barkati Nikah',
+    'Barkati',
+    'Barkati Nikah Fast Service',
     'Islamic matrimony',
     'halal marriage',
     'Muslim matrimony Bihar',
@@ -56,16 +59,16 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: 'Barkati Nikah Service - Halal Islamic Matrimony',
+    title: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
     description: 'Find your halal life partner with Maulana Farooq at Barkati Nikah Service.',
     url: 'https://barkatinikah.com',
-    siteName: 'Barkati Nikah Service',
+    siteName: 'Barkati Nikah Fast Service',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Barkati Nikah Service - Islamic Matrimony',
+        alt: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
       },
     ],
     locale: 'en_IN',
@@ -73,7 +76,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Barkati Nikah Service - Halal Islamic Matrimony',
+    title: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
     description: 'Find your halal life partner with Maulana Farooq.',
     images: ['/og-image.jpg'],
   },

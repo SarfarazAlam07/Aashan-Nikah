@@ -567,7 +567,7 @@ export default function SignUpPage() {
           {/* Footer */}
           <div className="text-center mt-5">
             <p className="text-gray-600 text-[10px]">
-              © 2025 Nikah Aasan | Islamic Matrimony
+              © 2025 Barkati Nikah | Islamic Matrimony
             </p>
             <p className="text-gray-700 text-[9px] mt-1">
               Patna • Chhapra • Siwan • Gopalganj • Muzaffarpur

@@ -64,7 +64,7 @@ export default function Header() {
                 font-bold text-base md:text-xl leading-tight transition-colors duration-300
                 ${scrolled ? 'text-gray-800 dark:text-white' : 'text-white'}
               `}>
-                Barkati Nikah Service
+                Barkati Nikah Fast Service
               </span>
               <span className={`
                 text-[10px] md:text-xs leading-tight transition-colors duration-300

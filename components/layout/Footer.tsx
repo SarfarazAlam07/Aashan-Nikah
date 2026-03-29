@@ -38,7 +38,7 @@ export default function Footer() {
                 <FaMosque className="text-green-400 text-xl" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-white">Nikah Aasan</h3>
+                <h3 className="font-bold text-xl text-white">Barkati Nikah</h3>
                 <p className="text-green-400 text-xs">हलाल मैट्रिमोनी</p>
               </div>
             </div>
@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <FaEnvelope className="text-green-400 flex-shrink-0" size={14} />
-                <span>info@nikahaasan.com</span>
+                <span>barkatinikah.com</span>
               </li>
             </ul>
           </div>
@@ -101,7 +101,7 @@ export default function Footer() {
               <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-full">SEO</span>
             </div>
             <a 
-              href="https://techerax.com" 
+              href="https://tech-era-x.vercel.app/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-sm text-green-400 hover:text-green-300 transition group"
@@ -118,7 +118,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
             <p className="flex items-center gap-1">
-              © 2025 Nikah Aasan
+              © 2025 Barkati Nikah
               <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1">
                 Made with <FaHeart className="text-red-500 text-xs" /> for Muslim Ummah

@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import User from '@/models/User';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +9,7 @@ export async function POST(request: Request) {
     
     const { secretKey, name, email, password } = await request.json();
 
-    // Secret key check (security ke liye)
+    // Secret key check 
     if (secretKey !== 'YOUR_SECRET_ADMIN_KEY') {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -27,15 +26,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create admin user
     const admin = await User.create({
       name,
       email,
-      password: hashedPassword,
+      password: password, 
       role: 'admin',
       isVerified: true,
       provider: 'email'

@@ -55,7 +55,7 @@ export default function HomePage() {
               <span className="gradient-text">Halal Life Partner</span>
               <br />
               <span className="text-2xl sm:text-3xl md:text-4xl block mt-2 text-gray-600 dark:text-gray-300">
-                with Barkati Nikah Service
+                with Barkati Nikah Fast Service
               </span>
             </h1>
 

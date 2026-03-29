@@ -2,7 +2,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import User from '@/models/User';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
@@ -27,12 +26,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update password
-    user.password = hashedPassword;
+    user.password = newPassword; 
+    
     await user.save();
 
     return NextResponse.json({

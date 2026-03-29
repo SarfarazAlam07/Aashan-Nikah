@@ -11,12 +11,17 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Nikah Aasan - Halal Islamic Matrimony',
+    default: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
     template: '%s | Nikah Aasan',
   },
   description: 'Find your halal life partner in Patna, Chhapra & across Bihar. Join 5000+ happy couples who found their perfect match through our privacy-focused, Sharia-compliant matrimony platform.',
   keywords: [
     'Islamic matrimony',
+    'Barkati Nikah Fast Service',
+    'Barkati Nikah Service',
+    'Barkati Nikah Fast',
+    'Barkati Nikah',
+    'Barkati',
     'halal marriage',
     'Muslim matrimony Bihar',
     'Nikah in Patna',
