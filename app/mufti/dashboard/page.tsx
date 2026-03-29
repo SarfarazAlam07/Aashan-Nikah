@@ -8,7 +8,6 @@ import {
   FiClock, 
   FiCheckCircle, 
   FiUsers,
-  FiBookOpen,
   FiHeart,
   FiTrendingUp,
   FiArrowRight,
@@ -160,7 +159,6 @@ export default function MuftiDashboard() {
         {/* Islamic Quote */}
         <div className="bg-white dark:bg-dark-200 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <FiBookOpen className="text-amber-500" size={18} />
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Islamic Quote</h2>
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4">
@@ -169,9 +167,7 @@ export default function MuftiDashboard() {
             </p>
             <p className="text-amber-600 dark:text-amber-400 text-xs mt-2">— Prophet Muhammad (PBUH)</p>
           </div>
-          <Link href="/mufti/advice" className="mt-4 flex items-center justify-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition">
-            <FiBookOpen size={14} /> Share Islamic Advice <FiArrowRight size={12} />
-          </Link>
+          
         </div>
       </div>
 
@@ -185,7 +181,6 @@ export default function MuftiDashboard() {
           <QuickAction href="/mufti/requests" icon={<FiMail size={18} />} label="Review Requests" count={stats.pending} color="amber" />
           <QuickAction href="/mufti/profiles" icon={<FiUsers size={18} />} label="Browse Profiles" color="blue" />
           <QuickAction href="/mufti/profile" icon={<FiStar size={18} />} label="My Profile" color="purple" />
-          <QuickAction href="/mufti/advice" icon={<FiBookOpen size={18} />} label="Share Advice" color="green" />
         </div>
       </div>
     </div>

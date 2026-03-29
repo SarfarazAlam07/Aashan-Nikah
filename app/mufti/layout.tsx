@@ -11,7 +11,6 @@ import {
   FiMenu, 
   FiX,
   FiStar,
-  FiBookOpen,
   FiChevronRight,
   FiUser
 } from 'react-icons/fi';
@@ -37,9 +36,13 @@ export default function MuftiLayout({
         return;
       }
       
-      if (user?.role !== 'MUFTI') {
+       if (user?.role !== 'MUFTI') {
         toast.error('Unauthorized access - Mufti only');
-        setTimeout(() => router.push('/user/dashboard'), 1000);
+        if (user?.role === 'SUPER_ADMIN') {
+          setTimeout(() => router.push('/admin/dashboard'), 1000);
+        } else {
+          setTimeout(() => router.push('/user/dashboard'), 1000);
+        }
         return;
       }
       
@@ -72,7 +75,6 @@ export default function MuftiLayout({
     { href: '/mufti/requests', icon: FiMail, label: 'Review Requests', badge: requestCount },
     { href: '/mufti/profiles', icon: FiUsers, label: 'Browse Profiles' },
     { href: '/mufti/profile', icon: FiUser, label: 'My Profile' },
-    { href: '/mufti/advice', icon: FiBookOpen, label: 'Islamic Advice' }
   ];
 
 // Replace the isActive function with this

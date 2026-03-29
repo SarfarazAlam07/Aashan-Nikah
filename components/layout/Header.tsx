@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiMenu, FiX, FiUser, FiPhone, FiLogIn, FiUserPlus, FiChevronDown } from 'react-icons/fi';
-import { FaHeart, FaMosque } from 'react-icons/fa';
+import { FiMenu, FiX, FiLogIn, FiUserPlus, FiHeart } from 'react-icons/fi';
+import { FaMosque } from 'react-icons/fa';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,11 +19,11 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // ✅ Only keep pages that exist
   const navLinks = [
     { href: '/', label: 'Home', active: pathname === '/' },
     { href: '/about', label: 'About', active: pathname === '/about' },
-    { href: '/how-it-works', label: 'How It Works', active: pathname === '/how-it-works' },
-    { href: '/contact', label: 'Contact', active: pathname === '/contact' },
+    { href: '/legal', label: 'Privacy & Terms', active: pathname === '/legal' },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -33,7 +33,7 @@ export default function Header() {
       fixed top-0 left-0 right-0 z-50 transition-all duration-500
       ${scrolled 
         ? 'bg-white/95 dark:bg-dark-200/95 backdrop-blur-xl shadow-lg border-b border-gray-100 dark:border-gray-700' 
-        : 'bg-transparent'
+        : 'bg-gradient-to-r from-green-600/90 to-emerald-600/90 backdrop-blur-sm'
       }
     `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,20 +46,15 @@ export default function Header() {
             {/* Logo Icon */}
             <div className="relative">
               <div className={`
-                absolute inset-0 rounded-full blur-md transition-opacity duration-300
-                ${scrolled ? 'bg-green-500/30' : 'bg-white/30'}
-                group-hover:opacity-100 opacity-0
-              `}></div>
-              <div className={`
-                relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
+                w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                 ${scrolled 
                   ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg' 
-                  : 'bg-white/20 backdrop-blur-sm border border-white/30'
+                  : 'bg-white/20 backdrop-blur-sm'
                 }
                 group-hover:scale-110
               `}>
-                <span className="text-xl md:text-2xl">🕌</span>
-                <FaHeart className="absolute -top-1 -right-1 text-red-500 text-[10px] animate-pulse" />
+                <FaMosque className="text-white text-xl md:text-2xl" />
+                <FiHeart className="absolute -top-1 -right-1 text-red-500 text-[10px] animate-pulse" />
               </div>
             </div>
             
@@ -69,13 +64,13 @@ export default function Header() {
                 font-bold text-base md:text-xl leading-tight transition-colors duration-300
                 ${scrolled ? 'text-gray-800 dark:text-white' : 'text-white'}
               `}>
-                Nikah Aasan
+                Barkati Nikah Service
               </span>
               <span className={`
                 text-[10px] md:text-xs leading-tight transition-colors duration-300
-                ${scrolled ? 'text-gray-500 dark:text-gray-400' : 'text-white/80'}
+                ${scrolled ? 'text-gray-500 dark:text-gray-400' : 'text-white/90'}
               `}>
-                हलाल मैट्रिमोनी
+                हलाल इस्लामिक मैट्रिमोनी
               </span>
             </div>
           </Link>
@@ -161,7 +156,7 @@ export default function Header() {
             py-4 space-y-1 rounded-2xl mt-2 mb-4
             ${scrolled 
               ? 'bg-white dark:bg-dark-200 shadow-lg border border-gray-100 dark:border-gray-700' 
-              : 'bg-white/10 backdrop-blur-xl border border-white/20'
+              : 'bg-white/95 backdrop-blur-xl border border-white/20'
             }
           `}>
             {navLinks.map((link) => (
@@ -175,7 +170,7 @@ export default function Header() {
                     ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                     : scrolled
                       ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-100'
-                      : 'text-white hover:bg-white/10'
+                      : 'text-gray-800 hover:bg-gray-100'
                   }
                 `}
               >
@@ -191,7 +186,7 @@ export default function Header() {
                   block px-4 py-3 rounded-xl font-medium transition-all duration-300
                   ${scrolled
                     ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-100'
-                    : 'text-white hover:bg-white/10'
+                    : 'text-gray-800 hover:bg-gray-100'
                   }
                 `}
               >
@@ -204,10 +199,10 @@ export default function Header() {
                 href="/signup"
                 onClick={() => setIsOpen(false)}
                 className={`
-                  block px-4 py-3 rounded-xl font-semibold transition-all duration-300 mt-2
+                  block px-4 py-3 rounded-xl font-semibold transition-all duration-300 mt-2 text-center
                   ${scrolled
                     ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white'
-                    : 'bg-white/20 backdrop-blur-sm text-white border border-white/30'
+                    : 'bg-green-600 text-white'
                   }
                 `}
               >
