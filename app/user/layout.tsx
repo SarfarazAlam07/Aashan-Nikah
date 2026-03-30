@@ -40,35 +40,85 @@ export default function UserLayout({
     }
   }, [authLoading, isAuthenticated, router]);
 
-  // Fetch request count
+  // Fetch data
   useEffect(() => {
     if (user) {
-      const fetchRequestCount = async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`/api/requests?userId=${user.id}&type=received`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await response.json();
-          if (data.success) {
-            const pendingCount = data.requests.filter((r: any) => r.status === 'SENT_TO_USER').length;
-            setRequestCount(pendingCount);
-          }
-        } catch (error) {
-          console.error('Error fetching requests:', error);
-        }
-      };
       fetchRequestCount();
+      fetchNotifications(); // 🔥 API call added here
     }
   }, [user]);
+
+  const fetchRequestCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/requests?userId=${user?.id}&type=received`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const pendingCount = data.requests.filter((r: any) => r.status === 'SENT_TO_USER').length;
+        setRequestCount(pendingCount);
+      }
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+    }
+  };
+
+  // 🔥 NEW FUNCTION: Fetch Notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/notifications', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setNotifications(data.notifications);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    toast.success('All notifications cleared');
+  // 🔥 NEW FUNCTION: Clear Notifications
+  const clearAllNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ action: 'clear_all' })
+      });
+      setNotifications([]);
+      toast.success('All notifications cleared');
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
+  };
+
+  // 🔥 NEW FUNCTION: Mark Read
+  const markAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch('/api/notifications', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ action: 'mark_read' })
+      });
+      fetchNotifications(); // Refresh list
+    } catch (error) {
+      console.error('Error marking notifications read:', error);
+    }
   };
 
   const navItems = [
@@ -78,7 +128,6 @@ export default function UserLayout({
     { href: '/user/profile', icon: FiUser, label: 'My Profile' },
   ];
 
-  // Show loading while checking auth
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 dark:from-dark-400 dark:to-dark-300">
@@ -98,6 +147,8 @@ export default function UserLayout({
     return pathname === href;
   };
 
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-400 dark:to-dark-300">
       <Toaster 
@@ -116,7 +167,6 @@ export default function UserLayout({
 
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white dark:bg-dark-200 shadow-xl z-20">
-        {/* Sidebar Header */}
         <div className="h-16 flex items-center px-5 border-b border-gray-200 dark:border-gray-700">
           <Link href="/user/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
@@ -129,8 +179,13 @@ export default function UserLayout({
         {/* User Profile Card */}
         <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-100 dark:border-green-800/30">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg">
-              {user.name?.charAt(0).toUpperCase()}
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg overflow-hidden">
+              {/* 🔥 FIX: Image properly rendering */}
+              {user?.imageUrl ? (
+                <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+              ) : (
+                user.name?.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-800 dark:text-white truncate">{user.name}</p>
@@ -209,8 +264,13 @@ export default function UserLayout({
 
           <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-100 dark:border-green-800/30">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg">
-                {user.name?.charAt(0).toUpperCase()}
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg overflow-hidden">
+                {/* 🔥 FIX: Image properly rendering */}
+                {user?.imageUrl ? (
+                  <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+                ) : (
+                  user.name?.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 dark:text-white truncate">{user.name}</p>
@@ -258,7 +318,7 @@ export default function UserLayout({
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2.5 w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200"
+              className="flex items-center gap-3 px-4 py-2.5 w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group"
             >
               <FiLogOut size={18} />
               <span className="text-sm font-medium">Logout</span>
@@ -279,12 +339,15 @@ export default function UserLayout({
           
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications && unreadCount > 0) markAsRead();
+              }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-100 transition"
             >
               <FiBell size={20} className="text-gray-600 dark:text-gray-400" />
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-dark-200 rounded-full animate-pulse"></span>
               )}
             </button>
             <button
@@ -299,39 +362,46 @@ export default function UserLayout({
 
       {/* Notifications Dropdown */}
       {showNotifications && (
-        <div className="fixed top-16 right-4 left-4 lg:top-20 lg:right-6 lg:left-auto lg:w-80 bg-white dark:bg-dark-200 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 lg:absolute">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+        <div className="fixed top-16 right-4 left-4 lg:top-20 lg:right-6 lg:left-auto lg:w-80 bg-white dark:bg-dark-200 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 lg:absolute animate-slide-up">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <FiBell className="text-amber-500" /> Notifications
+            </h3>
             {notifications.length > 0 && (
               <button
                 onClick={clearAllNotifications}
-                className="text-xs text-green-600 dark:text-green-400 hover:text-green-700"
+                className="text-xs text-rose-500 hover:text-rose-600 font-medium"
               >
                 Clear all
               </button>
             )}
           </div>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-[60vh] lg:max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                <FiBell className="mx-auto mb-2 text-2xl opacity-50" />
-                No notifications
+                <FiBell className="mx-auto mb-2 text-3xl opacity-20" />
+                <p className="text-sm">No new notifications</p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.map((n) => (
                 <div
-                  key={notification.id}
-                  className={`p-3 border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-100 transition ${
-                    !notification.read ? 'bg-green-50 dark:bg-green-900/20' : ''
+                  key={n._id}
+                  className={`p-3.5 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-dark-100 transition ${
+                    !n.isRead ? 'bg-green-50/50 dark:bg-green-900/10' : ''
                   }`}
                   onClick={() => {
                     setShowNotifications(false);
-                    router.push('/user/requests');
+                    router.push('/user/requests'); // Send to request page when clicked
                   }}
                 >
-                  <p className="font-medium text-sm text-gray-900 dark:text-white">{notification.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
+                  <p className="font-medium text-sm text-gray-900 dark:text-white flex items-start gap-2">
+                    {!n.isRead && <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>}
+                    {n.title}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pl-3.5">{n.message}</p>
+                  <p className="text-[10px] text-gray-400 mt-1.5 pl-3.5">
+                    {new Date(n.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               ))
             )}
@@ -340,8 +410,75 @@ export default function UserLayout({
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pt-16 lg:pt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      {/* Notifications Dropdown */}
+      {showNotifications && (
+        <div className="fixed top-16 right-4 left-4 lg:top-20 lg:right-8 lg:left-auto lg:w-80 bg-white dark:bg-dark-200 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 animate-slide-up">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-t-xl">
+            <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <FiBell className="text-amber-500" /> Notifications
+            </h3>
+            {notifications.length > 0 && (
+              <button
+                onClick={clearAllNotifications}
+                className="text-xs text-rose-500 hover:text-rose-600 font-medium"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          <div className="max-h-[60vh] lg:max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <FiBell className="mx-auto mb-2 text-3xl opacity-20" />
+                <p className="text-sm">No new notifications</p>
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n._id}
+                  className={`p-3.5 border-b border-gray-100 dark:border-gray-700/50 cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-100 transition ${
+                    !n.isRead ? 'bg-green-50/50 dark:bg-green-900/10' : ''
+                  }`}
+                  onClick={() => {
+                    setShowNotifications(false);
+                    router.push('/user/requests'); // Click karne pe Requests page pe bhej dega
+                  }}
+                >
+                  <p className="font-medium text-sm text-gray-900 dark:text-white flex items-start gap-2">
+                    {!n.isRead && <span className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>}
+                    {n.title}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pl-3.5">{n.message}</p>
+                  <p className="text-[10px] text-gray-400 mt-1.5 pl-3.5">
+                    {new Date(n.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto lg:pt-0 relative">
+        
+        {/* 🔥 ADDED: Desktop Top Header with Bell Icon 🔥 */}
+        <div className="hidden lg:flex justify-end items-center px-8 h-20 bg-gray-50/80 dark:bg-dark-400/80 backdrop-blur-md sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-700/50">
+          <button
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              if (!showNotifications && unreadCount > 0) markAsRead();
+            }}
+            className="relative p-2.5 bg-white dark:bg-dark-200 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 transition"
+          >
+            <FiBell size={20} className="text-gray-600 dark:text-gray-400" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-dark-200 rounded-full animate-pulse"></span>
+            )}
+          </button>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 py-4 lg:py-6 pt-20 lg:pt-6">
           {children}
         </div>
       </main>

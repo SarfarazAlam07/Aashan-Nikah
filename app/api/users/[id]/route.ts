@@ -72,6 +72,12 @@ export async function GET(
         education: user.education,
         bio: user.bio,
         imageUrl: user.imageUrl,
+        motherTongue: user.motherTongue,
+        maritalStatus: user.maritalStatus,
+        height: user.height,
+        postedBy: user.postedBy,
+        familyDetails: user.familyDetails,
+        partnerPreferences: user.partnerPreferences,
         isVerified: user.isVerified,
         createdAt: user.createdAt
       }

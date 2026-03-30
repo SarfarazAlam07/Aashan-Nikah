@@ -21,6 +21,12 @@ export interface IUser extends Document {
   role: 'SUPER_ADMIN' | 'MUFTI' | 'USER';
   isVerified: boolean;
   provider: 'email' | 'google';
+  motherTongue: { type: String, trim: true },
+  maritalStatus: { type: String, enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Never Married' },
+  height: { type: String },
+  postedBy: { type: String, enum: ['Self', 'Parent', 'Sibling', 'Relative', 'Friend'], default: 'Self' },
+  familyDetails: { type: String, maxlength: 1000 },
+  partnerPreferences: { type: String, maxlength: 1000 },
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;

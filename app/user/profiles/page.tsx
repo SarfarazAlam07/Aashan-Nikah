@@ -575,17 +575,31 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
   
   return (
     <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
-      <div className={`h-24 relative ${profile.gender === 'male' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-pink-500 to-pink-600'}`}>
+      
+      {/* 🔥 NAYA HEADER: Blurred Background Effect 🔥 */}
+      <div className="h-24 relative overflow-hidden bg-gray-900">
+        {profile.imageUrl ? (
+          <>
+            <img 
+              src={profile.imageUrl} 
+              alt="background" 
+              className="absolute inset-0 w-full h-full object-cover blur-md scale-125 opacity-60"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+          </>
+        ) : (
+          <div className={`absolute inset-0 w-full h-full ${profile.gender === 'male' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-pink-500 to-pink-600'}`}></div>
+        )}
+
         {profile.isVerified && (
-          <div className="absolute top-3 right-3 bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] text-white flex items-center gap-1">
-            <FaStar className="text-yellow-300" size={10} />
+          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white flex items-center gap-1 z-10 border border-white/10">
+            <FaStar className="text-yellow-400" size={10} />
             <span>Verified</span>
           </div>
         )}
-        <div className="absolute -bottom-8 left-4">
-          <div className={`w-14 h-14 rounded-xl border-3 border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-2xl overflow-hidden ${
-            profile.gender === 'male' ? 'bg-blue-100' : 'bg-pink-100'
-          }`}>
+        
+        <div className="absolute bottom-3 left-4 z-20">
+          <div className={`w-14 h-14 rounded-xl border-[3px] border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-2xl overflow-hidden bg-white`}>
              {profile.imageUrl ? (
                 <img src={profile.imageUrl} alt={profile.name} className="w-full h-full object-cover aspect-square" />
               ) : (
@@ -595,7 +609,7 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
         </div>
       </div>
 
-      <div className="pt-8 p-4">
+      <div className="pt-3 p-4">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-base font-semibold text-gray-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
@@ -648,8 +662,7 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
               onClick={() => onSendRista(profile)}
               className="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-medium transition shadow-sm"
             >
-              <FiHeart size={12} />
-              Send
+              <FiHeart size={12} /> Send
             </button>
           ) : requestStatus === 'ACCEPTED' ? (
             <button disabled className="flex-1 flex items-center justify-center gap-1 bg-green-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
@@ -668,8 +681,7 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
               onClick={() => onSendRista(profile)}
               className="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-medium transition"
             >
-              <FiHeart size={12} />
-              Send
+              <FiHeart size={12} /> Send
             </button>
           )}
         </div>
@@ -678,7 +690,6 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
   );
 }
 
-// List Profile Card Component
 // List Profile Card Component
 function ListProfileCard({ profile, onSendRista, requestStatus, currentUserGender }: { 
   profile: Profile; 
