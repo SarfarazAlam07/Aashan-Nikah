@@ -95,7 +95,8 @@ export async function POST(request: Request) {
         email: user.email,
         role: user.role,
         gender: user.gender,
-        city: user.city
+        city: user.city,
+        imageUrl: user.imageUrl
       }
     });
 

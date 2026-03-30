@@ -17,7 +17,8 @@ import {
   FiUserX,
   FiRefreshCw,
   FiChevronDown,
-  FiChevronUp
+  FiChevronUp,
+  FiX
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -378,44 +379,117 @@ function StatChip({ label, value, color }: any) {
 }
 
 // User Modal Component
-function UserModal({ user, onClose }: { user: User; onClose: () => void }) {
+// User Modal Component (REPLACE OLD ONE WITH THIS)
+function UserModal({ user, onClose, onVerify }: { user: User; onClose: () => void; onVerify: (id: string) => void }) {
+  const [msg, setMsg] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const quickReplies = [
+    "Please upload a clear profile photo.",
+    "Please complete your bio and caste details.",
+    "Your profile information seems invalid, please update."
+  ];
+
+  const handleSendMessage = async () => {
+    if (!msg.trim()) return toast.error('Message cannot be empty');
+    setSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ userId: user._id, message: msg })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Message sent to user!');
+        setMsg('');
+      } else throw new Error();
+    } catch {
+      toast.error('Failed to send message');
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl max-w-md w-full border border-slate-700 shadow-2xl">
+      <div className="bg-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-700 shadow-2xl">
         <div className="p-5">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0 shadow-sm">
+          {/* Header & Large Image View */}
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden shadow-lg border-2 border-slate-600">
                 {user.imageUrl ? (
-                  <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+                  <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   user.name.charAt(0).toUpperCase()
                 )}
               </div>
-              <h3 className="text-lg font-bold text-white">{user.name}</h3>
+              <div>
+                <h3 className="text-xl font-bold text-white">{user.name}</h3>
+                <span className={`text-xs px-2 py-1 rounded-full ${user.isVerified ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {user.isVerified ? '✓ Verified' : '⏳ Pending'}
+                </span>
+              </div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-white transition">
-              ✕
+            <button onClick={onClose} className="p-2 bg-slate-700/50 rounded-lg text-gray-400 hover:text-white transition">
+              <FiX size={20} />
             </button>
           </div>
           
-          <div className="space-y-2">
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
             <ModalDetail icon={<FiMail />} label="Email" value={user.email} />
             <ModalDetail icon={<FiPhone />} label="Phone" value={user.phone || 'Not provided'} />
             <ModalDetail label="Age" value={user.age ? `${user.age} years` : 'Not provided'} />
-            <ModalDetail label="Gender" value={user.gender === 'male' ? 'Male' : 'Female'} />
+            <ModalDetail label="Gender" value={user.gender} />
             <ModalDetail icon={<FiMapPin />} label="Location" value={`${user.city || 'N/A'}, ${user.district}`} />
             <ModalDetail label="Caste" value={user.caste || 'Not provided'} />
-            <ModalDetail label="Profession" value={user.profession || 'Not provided'} />
-            <ModalDetail icon={<FiCalendar />} label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
+          </div>
+
+          {/* Admin Messaging Section */}
+          <div className="bg-slate-700/30 rounded-xl p-4 mb-6 border border-slate-700">
+            <h4 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
+              <FiMail /> Send Message to User
+            </h4>
+            
+            {/* Quick Replies */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {quickReplies.map((reply, i) => (
+                <button 
+                  key={i} onClick={() => setMsg(reply)}
+                  className="text-[10px] bg-slate-700 hover:bg-slate-600 text-gray-300 px-2 py-1 rounded-md transition"
+                >
+                  {reply}
+                </button>
+              ))}
+            </div>
+
+            <textarea 
+              value={msg} onChange={(e) => setMsg(e.target.value)}
+              placeholder="Type custom message..." rows={2}
+              className="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white focus:border-amber-500 outline-none resize-none mb-2"
+            />
+            <button 
+              onClick={handleSendMessage} disabled={sending || !msg}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition"
+            >
+              {sending ? 'Sending...' : 'Send Notification'}
+            </button>
           </div>
           
-          <button
-            onClick={onClose}
-            className="mt-5 w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition font-medium text-sm"
-          >
-            Close
-          </button>
+          {/* Verify Action */}
+          <div className="flex gap-3">
+            {!user.isVerified && (
+              <button onClick={() => { onVerify(user._id); onClose(); }} className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition font-medium flex items-center justify-center gap-2">
+                <FiCheckCircle /> Approve & Verify
+              </button>
+            )}
+            <button onClick={onClose} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition font-medium">
+              Close View
+            </button>
+          </div>
         </div>
       </div>
     </div>

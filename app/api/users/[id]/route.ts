@@ -71,6 +71,7 @@ export async function GET(
         profession: user.profession,
         education: user.education,
         bio: user.bio,
+        imageUrl: user.imageUrl,
         isVerified: user.isVerified,
         createdAt: user.createdAt
       }
