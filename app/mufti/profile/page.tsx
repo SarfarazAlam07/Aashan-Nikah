@@ -14,7 +14,7 @@ import {
   FiX,
   FiStar,
   FiCalendar,
-  FiCheckCircle
+  FiCamera // Camera icon added
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { FaMosque } from 'react-icons/fa';
@@ -27,13 +27,16 @@ export default function MuftiProfilePage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     city: '',
     qualification: '',
     experience: '',
-    bio: ''
+    bio: '',
+    imageUrl: ''
   });
 
   useEffect(() => {
@@ -72,7 +75,8 @@ export default function MuftiProfilePage() {
           city: data.user.city || '',
           qualification: data.user.qualification || '',
           experience: data.user.experience || '',
-          bio: data.user.bio || ''
+          bio: data.user.bio || '',
+          imageUrl: data.user.imageUrl || ''
         });
       } else {
         toast.error('Failed to load profile');
@@ -82,6 +86,50 @@ export default function MuftiProfilePage() {
       toast.error('Network error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 🔥 Image Upload Logic 🔥
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    const toastId = toast.loading('Uploading photo...');
+
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      
+      // Fetching from .env.local
+      const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME || 'dhn69yomz';
+      const uploadPreset = process.env.NEXT_PUBLIC_UPLOAD_PRESET || 'barkati_preset';
+      
+      data.append('upload_preset', uploadPreset);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: data,
+      });
+
+      const uploadedImage = await response.json();
+
+      if (uploadedImage.secure_url) {
+        setFormData(prev => ({ ...prev, imageUrl: uploadedImage.secure_url }));
+        toast.success('Image uploaded! Click Save Changes.', { id: toastId });
+      } else {
+        toast.error('Failed to upload image. Check preset.', { id: toastId });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Network error during upload', { id: toastId });
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -102,14 +150,7 @@ export default function MuftiProfilePage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone,
-          city: formData.city,
-          qualification: formData.qualification,
-          experience: formData.experience,
-          bio: formData.bio
-        })
+        body: JSON.stringify(formData) // Includes imageUrl
       });
       
       const data = await response.json();
@@ -119,7 +160,6 @@ export default function MuftiProfilePage() {
         setProfile(data.user);
         setEditing(false);
         
-        // Update local storage user data
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         storedUser.name = formData.name;
         localStorage.setItem('user', JSON.stringify(storedUser));
@@ -141,7 +181,8 @@ export default function MuftiProfilePage() {
       city: profile?.city || '',
       qualification: profile?.qualification || '',
       experience: profile?.experience || '',
-      bio: profile?.bio || ''
+      bio: profile?.bio || '',
+      imageUrl: profile?.imageUrl || ''
     });
     setEditing(false);
   };
@@ -185,11 +226,50 @@ export default function MuftiProfilePage() {
       <div className="bg-white dark:bg-dark-200 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Banner */}
         <div className="h-24 bg-gradient-to-r from-amber-500 to-orange-600 relative">
+          
           <div className="absolute -bottom-12 left-6">
-            <div className="w-24 h-24 rounded-2xl border-4 border-white dark:border-dark-200 bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-              {profile?.name?.charAt(0).toUpperCase() || 'M'}
+            <div className="bg-white rounded-full p-1 shadow-xl relative group">
+              <div className="w-24 h-24 rounded-2xl border-4 border-white dark:border-dark-200 bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden relative">
+                
+                {/* 🖼️ Image rendering logic */}
+                {formData.imageUrl ? (
+                  <img 
+                    src={formData.imageUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover aspect-square"
+                  />
+                ) : (
+                  profile?.name?.charAt(0).toUpperCase() || 'M'
+                )}
+
+                {/* 📷 Hover Overlay for Upload */}
+                {editing && (
+                  <label className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center cursor-pointer transition-all duration-300">
+                    {uploadingImage ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <FiCamera className="text-white text-xl" />
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Edit Indicator */}
+              {editing && !uploadingImage && (
+                 <div className="absolute bottom-0 right-0 bg-amber-500 text-white p-1.5 rounded-full shadow-md border-2 border-white pointer-events-none z-10">
+                   <FiEdit2 size={12} />
+                 </div>
+              )}
             </div>
           </div>
+          
           <div className="absolute bottom-3 right-4">
             <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white">
               <FiStar size={12} />
@@ -304,7 +384,7 @@ export default function MuftiProfilePage() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleUpdateProfile}
-                  disabled={saving}
+                  disabled={saving || uploadingImage}
                   className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (

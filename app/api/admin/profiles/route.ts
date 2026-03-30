@@ -73,7 +73,7 @@ export async function GET(request: Request) {
     console.log('🔍 Admin profiles query:', JSON.stringify(query));
     
     const profiles = await User.find(query)
-      .select('name email phone age gender city district caste profession education bio isVerified createdAt')
+      .select('name email phone age gender city district caste profession education bio imageUrl isVerified createdAt')
       .sort({ createdAt: -1 })
       .limit(100);
     

@@ -32,6 +32,7 @@ interface User {
   district: string;
   caste?: string;
   profession?: string;
+  imageUrl?: string;
   isVerified: boolean;
   createdAt: string;
 }
@@ -246,8 +247,13 @@ export default function UsersPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold shadow-sm">
-                        {user.name.charAt(0).toUpperCase()}
+                      {/* Avatar */}
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden flex-shrink-0">
+                        {user.imageUrl ? (
+                          <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+                        ) : (
+                          user.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       
                       {/* Basic Info */}
@@ -379,8 +385,12 @@ function UserModal({ user, onClose }: { user: User; onClose: () => void }) {
         <div className="p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold">
-                {user.name.charAt(0).toUpperCase()}
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0 shadow-sm">
+                {user.imageUrl ? (
+                  <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+                ) : (
+                  user.name.charAt(0).toUpperCase()
+                )}
               </div>
               <h3 className="text-lg font-bold text-white">{user.name}</h3>
             </div>

@@ -32,7 +32,7 @@ const UserSchema = new Schema<IUser>(
     email: { 
       type: String, 
       required: true, 
-      unique: true,  // ✅ This creates index automatically
+      unique: true,  
       lowercase: true, 
       trim: true 
     },

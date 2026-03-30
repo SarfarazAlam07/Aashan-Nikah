@@ -35,6 +35,7 @@ interface Profile {
   profession?: string;
   education?: string;
   bio?: string;
+  imageUrl?: string;
   isVerified: boolean;
   createdAt: string;
 }

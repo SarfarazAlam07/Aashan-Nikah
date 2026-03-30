@@ -36,6 +36,7 @@ interface Profile {
   profession?: string;
   education?: string;
   bio?: string;
+  imageUrl?: string;
   isVerified: boolean;
 }
 
@@ -65,6 +66,7 @@ export default function ProfilesPage() {
     caste: '',
     search: ''
   });
+  const [user, setUser] = useState<any>(null);
 
   const { profiles, count, isLoading, mutate } = useProfiles(appliedFilters);
 
@@ -99,6 +101,7 @@ export default function ProfilesPage() {
       if (!userData) return;
       
       const currentUser = JSON.parse(userData);
+      setUser(currentUser);
       const token = localStorage.getItem('token');
       
       const sentRes = await fetch(`/api/requests?userId=${currentUser.id}&type=sent`, {
@@ -422,6 +425,7 @@ export default function ProfilesPage() {
                   profile={profile} 
                   onSendRista={handleSendRista}
                   requestStatus={getRequestStatus(profile._id)}
+                  currentUserGender={user?.gender}
                 />
               ) : (
                 <ListProfileCard 
@@ -429,6 +433,7 @@ export default function ProfilesPage() {
                   profile={profile} 
                   onSendRista={handleSendRista}
                   requestStatus={getRequestStatus(profile._id)}
+                  currentUserGender={user?.gender}
                 />
               )
             ))}
@@ -560,16 +565,16 @@ export default function ProfilesPage() {
 }
 
 // Grid Profile Card Component
-function GridProfileCard({ profile, onSendRista, requestStatus }: { 
+function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGender }: { 
   profile: Profile; 
   onSendRista: (profile: Profile) => void;
   requestStatus: string | null;
+  currentUserGender?: string;
 }) {
-  const isLiked = requestStatus === 'ACCEPTED';
+  const isSameGender = currentUserGender === profile.gender;
   
   return (
     <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
-      {/* Header with gradient */}
       <div className={`h-24 relative ${profile.gender === 'male' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-pink-500 to-pink-600'}`}>
         {profile.isVerified && (
           <div className="absolute top-3 right-3 bg-black/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] text-white flex items-center gap-1">
@@ -578,15 +583,18 @@ function GridProfileCard({ profile, onSendRista, requestStatus }: {
           </div>
         )}
         <div className="absolute -bottom-8 left-4">
-          <div className={`w-14 h-14 rounded-xl border-3 border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-2xl ${
+          <div className={`w-14 h-14 rounded-xl border-3 border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-2xl overflow-hidden ${
             profile.gender === 'male' ? 'bg-blue-100' : 'bg-pink-100'
           }`}>
-            {profile.gender === 'male' ? '👨' : '👩'}
+             {profile.imageUrl ? (
+                <img src={profile.imageUrl} alt={profile.name} className="w-full h-full object-cover aspect-square" />
+              ) : (
+                profile.gender === 'male' ? '👨' : '👩'
+              )}
           </div>
         </div>
       </div>
 
-      {/* Content */}
       <div className="pt-8 p-4">
         <div className="flex items-start justify-between">
           <div>
@@ -631,7 +639,11 @@ function GridProfileCard({ profile, onSendRista, requestStatus }: {
             View
           </Link>
           
-          {!requestStatus ? (
+          {isSameGender ? (
+             <button disabled className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 py-2 rounded-lg text-xs font-medium cursor-not-allowed">
+               Not Allowed
+             </button>
+          ) : !requestStatus ? (
             <button
               onClick={() => onSendRista(profile)}
               className="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-medium transition shadow-sm"
@@ -640,28 +652,16 @@ function GridProfileCard({ profile, onSendRista, requestStatus }: {
               Send
             </button>
           ) : requestStatus === 'ACCEPTED' ? (
-            <button
-              disabled
-              className="flex-1 flex items-center justify-center gap-1 bg-green-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed"
-            >
-              <FiCheckCircle size={12} />
-              Accepted
+            <button disabled className="flex-1 flex items-center justify-center gap-1 bg-green-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
+              <FiCheckCircle size={12} /> Accepted
             </button>
           ) : requestStatus === 'PENDING_ADMIN' ? (
-            <button
-              disabled
-              className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed"
-            >
-              <FiClock size={12} />
-              Pending
+            <button disabled className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
+              <FiClock size={12} /> Pending
             </button>
           ) : requestStatus === 'SENT_TO_USER' ? (
-            <button
-              disabled
-              className="flex-1 flex items-center justify-center gap-1 bg-blue-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed"
-            >
-              <FiMessageCircle size={12} />
-              Sent
+            <button disabled className="flex-1 flex items-center justify-center gap-1 bg-blue-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
+              <FiMessageCircle size={12} /> Sent
             </button>
           ) : (
             <button
@@ -679,20 +679,28 @@ function GridProfileCard({ profile, onSendRista, requestStatus }: {
 }
 
 // List Profile Card Component
-function ListProfileCard({ profile, onSendRista, requestStatus }: { 
+// List Profile Card Component
+function ListProfileCard({ profile, onSendRista, requestStatus, currentUserGender }: { 
   profile: Profile; 
   onSendRista: (profile: Profile) => void;
   requestStatus: string | null;
+  currentUserGender?: string;
 }) {
+  const isSameGender = currentUserGender === profile.gender;
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 p-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         {/* Avatar */}
         <div className="flex-shrink-0">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl ${
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl overflow-hidden ${
             profile.gender === 'male' ? 'bg-blue-100' : 'bg-pink-100'
           }`}>
-            {profile.gender === 'male' ? '👨' : '👩'}
+             {profile.imageUrl ? (
+                <img src={profile.imageUrl} alt={profile.name} className="w-full h-full object-cover aspect-square" />
+              ) : (
+                profile.gender === 'male' ? '👨' : '👩'
+              )}
           </div>
         </div>
         
@@ -725,13 +733,16 @@ function ListProfileCard({ profile, onSendRista, requestStatus }: {
             View
           </Link>
           
-          {!requestStatus ? (
+          {isSameGender ? (
+             <button disabled className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg text-xs font-medium cursor-not-allowed">
+               Not Allowed
+             </button>
+          ) : !requestStatus ? (
             <button
               onClick={() => onSendRista(profile)}
               className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
             >
-              <FiHeart size={12} />
-              Send
+              <FiHeart size={12} /> Send
             </button>
           ) : requestStatus === 'ACCEPTED' ? (
             <button disabled className="px-3 py-2 bg-green-500 text-white rounded-lg text-xs font-medium opacity-70 cursor-not-allowed flex items-center gap-1">
@@ -750,8 +761,7 @@ function ListProfileCard({ profile, onSendRista, requestStatus }: {
               onClick={() => onSendRista(profile)}
               className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
             >
-              <FiHeart size={12} />
-              Send
+              <FiHeart size={12} /> Send
             </button>
           )}
         </div>

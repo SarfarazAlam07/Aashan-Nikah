@@ -10,23 +10,24 @@ import {
   FiHeart, 
   FiMapPin,
   FiTrendingUp,
-  FiCalendar,
-  FiMessageCircle,
-  FiArrowRight,
-  FiEye,
-  FiCheckCircle
+  FiCheckCircle,
+  FiSend
 } from 'react-icons/fi';
-import { FaMosque, FaStar } from 'react-icons/fa';
+import { FaMosque } from 'react-icons/fa';
+import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [greeting, setGreeting] = useState('');
+  const [loadingStats, setLoadingStats] = useState(true);
+  
+  // Real Stats State
   const [stats, setStats] = useState({
-    profileViews: 24,
-    matches: 5,
-    requests: 3,
-    messages: 12
+    sentRequests: 0,
+    receivedRequests: 0,
+    matches: 0,
+    potentialMatches: 0
   });
 
   useEffect(() => {
@@ -35,14 +36,41 @@ export default function DashboardPage() {
       router.push('/signin');
       return;
     }
-    setUser(JSON.parse(userData));
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
     
     // Set greeting based on time
     const hour = new Date().getHours();
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
+
+    // Fetch Real Stats
+    fetchUserStats(parsedUser.id);
   }, [router]);
+
+  const fetchUserStats = async (userId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/stats', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.stats);
+        }
+      } else {
+        console.error('API is not returning JSON. Did you create app/api/user/stats/route.ts?');
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -73,34 +101,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Real Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
-          icon={<FiEye className="text-xl" />}
-          label="Profile Views"
-          value={stats.profileViews}
-          trend="+12%"
+          icon={<FiUsers className="text-xl" />}
+          label="Potential Matches"
+          value={loadingStats ? '...' : stats.potentialMatches}
           color="blue"
         />
         <StatCard 
           icon={<FiHeart className="text-xl" />}
-          label="Matches"
-          value={stats.matches}
-          trend="+2"
+          label="Successful Matches"
+          value={loadingStats ? '...' : stats.matches}
           color="green"
         />
         <StatCard 
-          icon={<FiMail className="text-xl" />}
-          label="Requests"
-          value={stats.requests}
-          trend="+3"
+          icon={<FiSend className="text-xl" />}
+          label="Sent Requests"
+          value={loadingStats ? '...' : stats.sentRequests}
           color="orange"
         />
         <StatCard 
-          icon={<FiMessageCircle className="text-xl" />}
-          label="Messages"
-          value={stats.messages}
-          trend="+5"
+          icon={<FiMail className="text-xl" />}
+          label="Received Requests"
+          value={loadingStats ? '...' : stats.receivedRequests}
           color="purple"
         />
       </div>
@@ -125,69 +149,57 @@ export default function DashboardPage() {
               href="/user/requests"
               icon={<FiMail size={20} />}
               title="My Requests"
-              description={`${stats.requests} pending`}
+              description="Manage sent & received"
               color="blue"
             />
             <QuickActionCard 
               href="/user/profile"
               icon={<FiUser size={20} />}
               title="Edit Profile"
-              description="Update info"
+              description="Update info & photo"
               color="purple"
             />
           </div>
         </div>
 
-        {/* Local Matches */}
+        {/* Action Highlights */}
         <div className="bg-white dark:bg-dark-200 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Local Matches</h2>
-            <Link href="/user/profiles" className="text-xs text-green-600 dark:text-green-400 hover:underline flex items-center gap-1">
-              View all <FiArrowRight size={12} />
-            </Link>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h2>
+            <FiTrendingUp className="text-gray-400" />
           </div>
           <div className="space-y-4">
-            <LocationMatch city="Chhapra" count={24} distance="Near you" />
-            <LocationMatch city="Patna" count={56} distance="30 km" />
-            <LocationMatch city="Siwan" count={18} distance="45 km" />
-            <LocationMatch city="Gopalganj" count={15} distance="60 km" />
+             {/* Updated dynamic activity based on stats */}
+            {stats.receivedRequests > 0 && (
+                <ActivityItem 
+                    icon={<FiMail className="text-blue-500" />}
+                    title="New Requests"
+                    description={`You have ${stats.receivedRequests} pending requests`}
+                    time="Check now"
+                />
+            )}
+            {stats.matches > 0 && (
+                <ActivityItem 
+                    icon={<FiCheckCircle className="text-green-500" />}
+                    title="Rista Accepted"
+                    description="You have successful matches!"
+                    time="Mashallah"
+                />
+            )}
+            <ActivityItem 
+              icon={<FiUsers className="text-purple-500" />}
+              title="Browse Profiles"
+              description={`${stats.potentialMatches} new profiles available`}
+              time="Updated recently"
+            />
           </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white dark:bg-dark-200 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Recent Activity</h2>
-          <FiTrendingUp className="text-gray-400" />
-        </div>
-        <div className="space-y-4">
-          <ActivityItem 
-            icon={<FiHeart className="text-red-500" />}
-            title="New Interest"
-            description="Someone viewed your profile"
-            time="2 hours ago"
-          />
-          <ActivityItem 
-            icon={<FiCheckCircle className="text-green-500" />}
-            title="Request Accepted"
-            description="Your request was accepted"
-            time="Yesterday"
-          />
-          <ActivityItem 
-            icon={<FiUsers className="text-blue-500" />}
-            title="New Profile"
-            description="New member joined near you"
-            time="2 days ago"
-          />
         </div>
       </div>
     </div>
   );
 }
 
-// Stat Card Component
-function StatCard({ icon, label, value, trend, color }: any) {
+function StatCard({ icon, label, value, color }: any) {
   const colors: any = {
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
     green: 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
@@ -201,7 +213,6 @@ function StatCard({ icon, label, value, trend, color }: any) {
         <div className={`p-2 rounded-xl ${colors[color]}`}>
           {icon}
         </div>
-        <span className="text-xs text-green-600 dark:text-green-400 font-medium">{trend}</span>
       </div>
       <div>
         <p className="text-2xl font-bold text-gray-800 dark:text-white">{value}</p>
@@ -211,7 +222,6 @@ function StatCard({ icon, label, value, trend, color }: any) {
   );
 }
 
-// Quick Action Card Component
 function QuickActionCard({ href, icon, title, description, color }: any) {
   const colors: any = {
     green: 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30',
@@ -220,10 +230,7 @@ function QuickActionCard({ href, icon, title, description, color }: any) {
   };
 
   return (
-    <Link
-      href={href}
-      className={`group p-4 rounded-xl transition-all duration-300 ${colors[color]} hover:scale-105`}
-    >
+    <Link href={href} className={`group p-4 rounded-xl transition-all duration-300 ${colors[color]} hover:scale-105`}>
       <div className="flex items-center gap-3 mb-2">
         <div className="text-gray-700 dark:text-gray-300 group-hover:scale-110 transition">
           {icon}
@@ -235,39 +242,17 @@ function QuickActionCard({ href, icon, title, description, color }: any) {
   );
 }
 
-// Location Match Component
-function LocationMatch({ city, count, distance }: { city: string; count: number; distance: string }) {
-  return (
-    <div className="flex items-center justify-between group cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-100 p-2 rounded-lg transition">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition">
-          <FiMapPin className="text-green-600 dark:text-green-400 text-sm" />
-        </div>
-        <div>
-          <p className="font-medium text-gray-800 dark:text-white text-sm">{city}</p>
-          <p className="text-xs text-gray-400">{distance}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p className="font-semibold text-green-600 dark:text-green-400">{count}</p>
-        <p className="text-xs text-gray-400">profiles</p>
-      </div>
-    </div>
-  );
-}
-
-// Activity Item Component
 function ActivityItem({ icon, title, description, time }: any) {
   return (
-    <div className="flex items-start gap-3 group cursor-pointer hover:bg-gray-50 dark:hover:bg-dark-100 p-3 rounded-xl transition">
-      <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-dark-100 flex items-center justify-center group-hover:scale-110 transition">
+    <div className="flex items-start gap-3 p-3 rounded-xl transition bg-gray-50 dark:bg-dark-100">
+      <div className="w-8 h-8 rounded-full bg-white dark:bg-dark-200 flex items-center justify-center shadow-sm">
         {icon}
       </div>
       <div className="flex-1">
         <p className="font-medium text-gray-800 dark:text-white text-sm">{title}</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
       </div>
-      <span className="text-xs text-gray-400">{time}</span>
+      <span className="text-xs text-gray-400 font-medium">{time}</span>
     </div>
   );
 }

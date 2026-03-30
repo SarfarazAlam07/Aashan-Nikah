@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { FiEdit2, FiSave, FiX } from 'react-icons/fi';
+import { FiEdit2, FiSave, FiX, FiCamera } from 'react-icons/fi'; // FiCamera add kiya hai
 import { BIHAR_DISTRICTS, ALL_CITIES } from '@/lib/locations';
 
 export default function ProfilePage() {
@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false); // Image upload loading state
   
   const [formData, setFormData] = useState({
     name: '',
@@ -25,7 +26,8 @@ export default function ProfilePage() {
     caste: '',
     profession: '',
     education: '',
-    bio: ''
+    bio: '',
+    imageUrl: '' // Naya field add kiya
   });
 
   useEffect(() => {
@@ -64,7 +66,8 @@ export default function ProfilePage() {
             caste: profile.caste || '',
             profession: profile.profession || '',
             education: profile.education || '',
-            bio: profile.bio || ''
+            bio: profile.bio || '',
+            imageUrl: profile.imageUrl || '' // Database se image load karna
           });
           setSelectedDistrict(profile.district || 'Saran');
           setLoading(false);
@@ -72,6 +75,7 @@ export default function ProfilePage() {
         }
       }
       
+      // Fallback to local storage
       const savedProfile = localStorage.getItem(`userProfile_${parsedUser.id}`);
       if (savedProfile) {
         const profile = JSON.parse(savedProfile);
@@ -86,7 +90,8 @@ export default function ProfilePage() {
           caste: profile.caste || '',
           profession: profile.profession || '',
           education: profile.education || '',
-          bio: profile.bio || ''
+          bio: profile.bio || '',
+          imageUrl: profile.imageUrl || ''
         });
       } else {
         setFormData({
@@ -100,7 +105,8 @@ export default function ProfilePage() {
           caste: '',
           profession: '',
           education: '',
-          bio: ''
+          bio: '',
+          imageUrl: ''
         });
       }
       setSelectedDistrict('Saran');
@@ -125,6 +131,52 @@ export default function ProfilePage() {
     }
   };
 
+  // ✅ Image Upload Logic
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 1. Size Validation (Max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    const toastId = toast.loading('Uploading profile picture...');
+
+    try {
+      const data = new FormData();
+      data.append('file', file);
+      
+      // 🔥 FIX: Using environment variables instead of dummy text 🔥
+      const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME ;
+      const uploadPreset = process.env.NEXT_PUBLIC_UPLOAD_PRESET ;
+      
+      data.append('upload_preset', uploadPreset);
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: 'POST',
+        body: data,
+      });
+
+      const uploadedImage = await response.json();
+
+      if (uploadedImage.secure_url) {
+        setFormData(prev => ({ ...prev, imageUrl: uploadedImage.secure_url }));
+        toast.success('Image uploaded! Click Save Changes to update.', { id: toastId });
+      } else {
+        console.error('Cloudinary Error:', uploadedImage);
+        toast.error('Failed to upload. Check your Upload Preset name.', { id: toastId });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Network error during upload', { id: toastId });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -139,7 +191,7 @@ export default function ProfilePage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData) // imageUrl bhi saath jayega
       });
       
       if (!response.ok) {
@@ -167,6 +219,7 @@ export default function ProfilePage() {
   };
 
   const cancelEdit = () => {
+    loadProfile(); 
     setIsEditing(false);
   };
 
@@ -194,10 +247,46 @@ export default function ProfilePage() {
           )}
           
           <div className="absolute -bottom-12 left-4 sm:left-6">
-            <div className="bg-white rounded-full p-1 shadow-xl">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-full flex items-center justify-center text-3xl sm:text-4xl">
-                {formData.gender === 'male' ? '👨' : '👩'}
+            <div className="bg-white rounded-full p-1 shadow-xl relative group">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-amber-100 rounded-full flex items-center justify-center text-3xl sm:text-4xl overflow-hidden relative">
+                
+                {/* 🖼️ Image rendering logic */}
+                {formData.imageUrl ? (
+                  <img 
+                    src={formData.imageUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover aspect-square"
+                  />
+                ) : (
+                  formData.gender === 'male' ? '👨' : '👩'
+                )}
+
+                {/* 📷 Hover Overlay for Upload (Only in Edit Mode) */}
+                {isEditing && (
+                  <label className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center cursor-pointer transition-all duration-300">
+                    {uploadingImage ? (
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <FiCamera className="text-white text-xl" />
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+                )}
               </div>
+              
+              {/* Pencil Icon indicator */}
+              {isEditing && !uploadingImage && (
+                 <div className="absolute bottom-0 right-0 bg-amber-500 text-white p-1.5 rounded-full shadow-md border-2 border-white pointer-events-none z-10">
+                   <FiEdit2 size={12} />
+                 </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -377,7 +466,7 @@ export default function ProfilePage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || uploadingImage}
                 className="flex items-center gap-2 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50"
               >
                 {saving ? <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div> : <FiSave size={16} />}

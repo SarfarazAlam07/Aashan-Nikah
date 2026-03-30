@@ -3,40 +3,17 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 
-// Public routes (no authentication required)
 const publicRoutes = [
   '/',
   '/signin',
   '/signup',
   '/api/auth/login',
   '/api/auth/register',
-  '/api/test-db',
-  '/api/test-env',
   '/_next',
   '/favicon.ico'
 ];
 
-// Protected routes that require authentication
-const protectedRoutes = [
-  '/user/',
-  '/admin/',
-  '/api/user/',
-  '/api/admin/',
-  '/api/requests/',
-  '/api/profiles/'
-];
-
-// Admin-only routes
-const adminRoutes = [
-  '/admin/',
-  '/api/admin/'
-];
-
-// Super Admin only routes
-const superAdminRoutes = [
-  '/api/admin/muftis/',
-  '/api/admin/settings/'
-];
+const protectedRoutes = ['/user', '/admin', '/mufti', '/api/user', '/api/admin', '/api/mufti', '/api/requests', '/api/profiles'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -46,17 +23,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   
-  // Check if route is protected
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route));
+  if (!isProtected) return NextResponse.next();
   
-  if (!isProtected) {
-    return NextResponse.next();
-  }
-  
-  // Get token from cookies
+  // Get token
   let token = request.cookies.get('token')?.value;
-  
-  // Also check Authorization header
   if (!token) {
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -64,53 +35,58 @@ export function middleware(request: NextRequest) {
     }
   }
   
-  // No token - redirect to login
+  // 🔥 FIX: Check if it's an API route or Page route 🔥
+  const isApiRoute = pathname.startsWith('/api/');
+
   if (!token) {
-    const loginUrl = new URL('/signin', request.url);
-    loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    if (isApiRoute) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/signin', request.url));
   }
   
-  // Verify token
   const payload = verifyToken(token);
   
   if (!payload) {
-    // Invalid token - clear and redirect
+    if (isApiRoute) {
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    }
     const response = NextResponse.redirect(new URL('/signin', request.url));
     response.cookies.delete('token');
     return response;
   }
   
-  // Check admin routes
-  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route));
-  if (isAdminRoute && payload.role !== 'SUPER_ADMIN' && payload.role !== 'MUFTI') {
-    return NextResponse.redirect(new URL('/user/dashboard', request.url));
+  const role = payload.role;
+
+  // STRICT ROLE ISOLATION
+  if (pathname.startsWith('/admin') && role !== 'SUPER_ADMIN') {
+    return NextResponse.redirect(new URL('/signin', request.url));
+  }
+  if (pathname.startsWith('/api/admin') && role !== 'SUPER_ADMIN') {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
   }
   
-  // Check super admin routes
-  const isSuperAdminRoute = superAdminRoutes.some(route => pathname.startsWith(route));
-  if (isSuperAdminRoute && payload.role !== 'SUPER_ADMIN') {
-    return NextResponse.json(
-      { success: false, error: 'Forbidden' },
-      { status: 403 }
-    );
+  if (pathname.startsWith('/mufti') && role !== 'MUFTI') {
+    return NextResponse.redirect(new URL('/signin', request.url));
+  }
+  if (pathname.startsWith('/api/mufti') && role !== 'MUFTI') {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
   }
   
-  // Add user info to headers for API routes
+  if (pathname.startsWith('/user') && role !== 'USER') {
+    return NextResponse.redirect(new URL('/signin', request.url));
+  }
+  
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-user-id', payload.id);
   requestHeaders.set('x-user-role', payload.role);
   requestHeaders.set('x-user-email', payload.email);
   
   return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
+    request: { headers: requestHeaders },
   });
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|images|favicon.ico).*)',
-  ]
+  matcher: ['/((?!_next/static|_next/image|images|favicon.ico).*)']
 };

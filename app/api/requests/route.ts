@@ -130,7 +130,12 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+    if (sender.gender === receiver.gender) {
+      return NextResponse.json(
+        { success: false, error: 'Requesting same gender is not allowed.' },
+        { status: 400 }
+      );
+    }
     // Check for existing request
     const existing = await RistaRequest.findOne({ senderId, receiverId });
     if (existing) {

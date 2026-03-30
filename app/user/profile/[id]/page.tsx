@@ -157,6 +157,13 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
   };
 
   const getRequestButton = () => {
+    if (currentUser?.gender === profile?.gender) {
+      return (
+        <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-xl text-sm font-medium border border-gray-200">
+          Cannot send request to same gender
+        </div>
+      );
+    }
     if (!requestStatus) {
       return (
         <button
@@ -248,7 +255,11 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
           <div className="absolute -bottom-12 left-6">
             <div className="bg-white rounded-full p-1 shadow-xl">
               <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center text-4xl">
-                {profile.gender === 'male' ? '👨' : '👩'}
+                {profile.imageUrl ? (
+                  <img src={profile.imageUrl} alt={profile.name} className="w-full h-full object-cover aspect-square" />
+                ) : (
+                  profile.gender === 'male' ? '👨' : '👩'
+                )}
               </div>
             </div>
           </div>
