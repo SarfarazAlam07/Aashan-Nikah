@@ -21,12 +21,15 @@ export interface IUser extends Document {
   role: 'SUPER_ADMIN' | 'MUFTI' | 'USER';
   isVerified: boolean;
   provider: 'email' | 'google';
-  motherTongue: { type: String, trim: true },
-  maritalStatus: { type: String, enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Never Married' },
-  height: { type: String },
-  postedBy: { type: String, enum: ['Self', 'Parent', 'Sibling', 'Relative', 'Friend'], default: 'Self' },
-  familyDetails: { type: String, maxlength: 1000 },
-  partnerPreferences: { type: String, maxlength: 1000 },
+  
+  // 🔥 YAHAN SIRF TYPESCRIPT TYPES HOTE HAIN 🔥
+  motherTongue?: string;
+  maritalStatus?: string;
+  height?: string;
+  postedBy?: string;
+  familyDetails?: string;
+  partnerPreferences?: string;
+  
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -62,6 +65,14 @@ const UserSchema = new Schema<IUser>(
     },
     isVerified: { type: Boolean, default: false },
     provider: { type: String, enum: ['email', 'google'], default: 'email' },
+    
+    // 🔥 ASLI MONGOOSE SCHEMA RULES YAHAN AAYENGE 🔥
+    motherTongue: { type: String, trim: true },
+    maritalStatus: { type: String, enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Never Married' },
+    height: { type: String },
+    postedBy: { type: String, enum: ['Self', 'Parent', 'Sibling', 'Relative', 'Friend'], default: 'Self' },
+    familyDetails: { type: String, maxlength: 1000 },
+    partnerPreferences: { type: String, maxlength: 1000 },
   },
   { timestamps: true }
 );
@@ -89,13 +100,10 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   }
 };
 
-// ✅ Create indexes - Remove email index from here (already unique: true)
-// Only create additional indexes for other fields
 UserSchema.index({ city: 1, district: 1 });
 UserSchema.index({ age: 1, gender: 1 });
 UserSchema.index({ role: 1 });
 
-// ✅ Check if model exists before creating
 const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
 export default User;

@@ -2,23 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  FiSearch, 
-  FiCheckCircle, 
-  FiXCircle, 
-  FiTrash2, 
-  FiEye,
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiCalendar,
-  FiUsers,
-  FiUserCheck,
-  FiUserX,
-  FiRefreshCw,
-  FiChevronDown,
-  FiChevronUp,
-  FiX
+  FiSearch, FiCheckCircle, FiXCircle, FiTrash2, FiEye,
+  FiUser, FiMail, FiPhone, FiMapPin, FiUsers,
+  FiRefreshCw, FiChevronDown, FiChevronUp, FiX
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -80,7 +66,7 @@ export default function UsersPage() {
   };
 
   const handleVerify = async (userId: string) => {
-    toast.loading('Verifying...', { id: 'verify' });
+    const toastId = toast.loading('Verifying...');
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/users?userId=${userId}&action=verify`, {
@@ -89,20 +75,20 @@ export default function UsersPage() {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('User verified!', { id: 'verify' });
+        toast.success('User verified!', { id: toastId });
         fetchUsers();
       } else {
-        toast.error('Failed to verify', { id: 'verify' });
+        toast.error('Failed to verify', { id: toastId });
       }
     } catch (error) {
-      toast.error('Error', { id: 'verify' });
+      toast.error('Error', { id: toastId });
     }
   };
 
   const handleDelete = async (userId: string) => {
     if (!confirm('Are you sure? This action cannot be undone.')) return;
     
-    toast.loading('Deleting...', { id: 'delete' });
+    const toastId = toast.loading('Deleting...');
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/users?userId=${userId}`, {
@@ -111,13 +97,13 @@ export default function UsersPage() {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('User deleted!', { id: 'delete' });
+        toast.success('User deleted!', { id: toastId });
         fetchUsers();
       } else {
-        toast.error('Failed to delete', { id: 'delete' });
+        toast.error('Failed to delete', { id: toastId });
       }
     } catch (error) {
-      toast.error('Error', { id: 'delete' });
+      toast.error('Error', { id: toastId });
     }
   };
 
@@ -174,7 +160,7 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Stats Cards - Horizontal Scroll on Mobile */}
+      {/* Stats Cards */}
       <div className="overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
         <div className="flex gap-2 min-w-max">
           <StatChip label="Total" value={stats.total} color="blue" />
@@ -207,7 +193,6 @@ export default function UsersPage() {
           </button>
         </div>
         
-        {/* Mobile Filters Dropdown */}
         {mobileFiltersOpen && (
           <div className="mt-2 flex gap-2 flex-wrap">
             {['all', 'verified', 'pending'].map(status => (
@@ -230,7 +215,7 @@ export default function UsersPage() {
         )}
       </div>
 
-      {/* Users Cards - Mobile Friendly */}
+      {/* Users Cards */}
       {filteredUsers.length === 0 ? (
         <div className="bg-slate-800/50 rounded-xl border border-slate-700 p-8 text-center">
           <FiUsers className="text-3xl text-gray-600 mx-auto mb-3" />
@@ -243,12 +228,9 @@ export default function UsersPage() {
             
             return (
               <div key={user._id} className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
-                {/* Card Header */}
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      {/* Avatar */}
-                      {/* Avatar */}
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden flex-shrink-0">
                         {user.imageUrl ? (
                           <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
@@ -257,7 +239,6 @@ export default function UsersPage() {
                         )}
                       </div>
                       
-                      {/* Basic Info */}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="text-white font-semibold text-base">{user.name}</h3>
@@ -280,7 +261,6 @@ export default function UsersPage() {
                       </div>
                     </div>
                     
-                    {/* Expand Button */}
                     <button
                       onClick={() => setExpandedUser(isExpanded ? null : user._id)}
                       className="p-1.5 rounded-lg bg-slate-700/50 text-gray-400"
@@ -290,7 +270,6 @@ export default function UsersPage() {
                   </div>
                 </div>
                 
-                {/* Expanded Details */}
                 {isExpanded && (
                   <div className="border-t border-slate-700 px-4 py-3 space-y-2 bg-slate-800/30">
                     <div className="grid grid-cols-2 gap-3 text-sm">
@@ -320,7 +299,6 @@ export default function UsersPage() {
                       </div>
                     </div>
                     
-                    {/* Action Buttons */}
                     <div className="flex gap-2 pt-2 border-t border-slate-700">
                       <button
                         onClick={() => {
@@ -354,15 +332,18 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* User Modal */}
+      {/* 🔥 User Modal (Properly passing onVerify function here) 🔥 */}
       {showUserModal && selectedUser && (
-        <UserModal user={selectedUser} onClose={() => setShowUserModal(false)} />
+        <UserModal 
+          user={selectedUser} 
+          onClose={() => setShowUserModal(false)} 
+          onVerify={handleVerify}
+        />
       )}
     </div>
   );
 }
 
-// Stat Chip for Mobile
 function StatChip({ label, value, color }: any) {
   const colors: any = {
     blue: 'bg-blue-500/20 text-blue-400',
@@ -409,7 +390,7 @@ function UserModal({ user, onClose, onVerify }: { user: User; onClose: () => voi
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in">
         <div className="p-6">
           <div className="flex justify-between items-start mb-6">
             <div className="flex items-center gap-4">
@@ -448,17 +429,17 @@ function UserModal({ user, onClose, onVerify }: { user: User; onClose: () => voi
                 </button>
               ))}
             </div>
-            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Type custom message..." rows={2} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white mb-2" />
-            <button onClick={handleSendMessage} disabled={sending || !msg} className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50">
+            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Type custom message..." rows={2} className="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white mb-2 resize-none" />
+            <button onClick={handleSendMessage} disabled={sending || !msg} className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition">
               {sending ? 'Sending...' : 'Send to User'}
             </button>
           </div>
           
           <div className="flex gap-3">
             {!user.isVerified && (
-              <button onClick={() => { onVerify(user._id); onClose(); }} className="flex-1 py-3 bg-green-600 text-white rounded-xl">✓ Approve & Verify</button>
+              <button onClick={() => { onVerify(user._id); onClose(); }} className="flex-1 py-3 bg-green-600 hover:bg-green-700 transition text-white rounded-xl font-medium">✓ Approve & Verify</button>
             )}
-            <button onClick={onClose} className="flex-1 py-3 bg-slate-700 text-white rounded-xl">Cancel</button>
+            <button onClick={onClose} className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 transition text-white rounded-xl font-medium">Cancel</button>
           </div>
         </div>
       </div>

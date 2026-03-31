@@ -1,12 +1,9 @@
-// next.config.ts
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['lh3.googleusercontent.com', 'res.cloudinary.com'], // Cloudinary add kiya
-  },
-  experimental: {
-    serverActions: true,
-  },
+    domains: ['lh3.googleusercontent.com', 'res.cloudinary.com'],
+  }
+  // 🔥 experimental.serverActions hata diya kyunki Next 15 me iski zaroorat nahi hai
 }
 
-export default nextConfig
+export default nextConfig;

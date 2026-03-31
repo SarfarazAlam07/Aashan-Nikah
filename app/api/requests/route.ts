@@ -83,66 +83,34 @@ export async function POST(request: Request) {
     
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
-    
-    if (!payload) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid token' },
-        { status: 401 }
-      );
-    }
+    if (!payload) return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
     
     const { senderId, receiverId, message } = await request.json();
     
-    if (!senderId || !receiverId) {
-      return NextResponse.json(
-        { success: false, error: 'Sender and receiver required' },
-        { status: 400 }
-      );
-    }
+    if (!senderId || !receiverId) return NextResponse.json({ success: false, error: 'Sender and receiver required' }, { status: 400 });
+    if (senderId !== payload.id) return NextResponse.json({ success: false, error: 'Sender mismatch' }, { status: 403 });
     
-    // Check if sender matches token
-    if (senderId !== payload.id) {
-      return NextResponse.json(
-        { success: false, error: 'Sender mismatch' },
-        { status: 403 }
-      );
-    }
-    
-    // Import User model dynamically to avoid circular dependency
     const User = (await import('@/models/User')).default;
+    const [sender, receiver] = await Promise.all([User.findById(senderId), User.findById(receiverId)]);
     
-    const [sender, receiver] = await Promise.all([
-      User.findById(senderId),
-      User.findById(receiverId)
-    ]);
+    if (!sender || !receiver) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+    if (sender.gender === receiver.gender) return NextResponse.json({ success: false, error: 'Requesting same gender is not allowed.' }, { status: 400 });
     
-    if (!sender || !receiver) {
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 404 }
-      );
-    }
-    if (sender.gender === receiver.gender) {
-      return NextResponse.json(
-        { success: false, error: 'Requesting same gender is not allowed.' },
-        { status: 400 }
-      );
-    }
-    // Check for existing request
-    const existing = await RistaRequest.findOne({ senderId, receiverId });
+    // 🔥 FIXED: Check if any request exists between these two users in ANY direction
+    const existing = await RistaRequest.findOne({
+      $or: [
+        { senderId: senderId, receiverId: receiverId },
+        { senderId: receiverId, receiverId: senderId } // Check if they already sent us a request
+      ]
+    });
+    
     if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'Request already sent' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'A request already exists between these profiles.' }, { status: 400 });
     }
     
     const newRequest = await RistaRequest.create({
@@ -150,21 +118,14 @@ export async function POST(request: Request) {
       receiverId,
       senderName: sender.name,
       receiverName: receiver.name,
-      message: message || 'I am interested in your profile.',
+      message: message || 'Assalamu Alaikum, I am interested in your profile.',
       status: 'PENDING_ADMIN'
     });
     
-    return NextResponse.json({
-      success: true,
-      message: 'Request sent to admin',
-      request: newRequest
-    }, { status: 201 });
+    return NextResponse.json({ success: true, message: 'Request sent to admin', request: newRequest }, { status: 201 });
     
   } catch (error) {
     console.error('❌ Error creating request:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to create request' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to create request' }, { status: 500 });
   }
 }

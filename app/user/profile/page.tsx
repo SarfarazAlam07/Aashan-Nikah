@@ -174,6 +174,23 @@ export default function ProfilePage() {
       setFormData(prev => ({ ...prev, city: '' }));
     }
   };
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    
+    // Check agar start me '+' hai
+    const hasPlus = val.startsWith('+');
+    
+    // Baaki puri string se saare non-numbers (A-Z, space, -, etc.) hata do
+    const digitsOnly = val.replace(/\D/g, '');
+    
+    // Agar shuru me '+' tha, toh usko wapas laga do numbers ke aage
+    const finalValue = hasPlus ? '+' + digitsOnly : digitsOnly;
+    
+    // Limit to max 15 characters (+ aur 14 numbers) taaki bohot lamba na ho
+    if (finalValue.length <= 15) {
+      setFormData(prev => ({ ...prev, phone: finalValue }));
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -339,7 +356,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 w-full">
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Full Name *</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
 
               <div className="min-w-0 w-full">
@@ -349,31 +366,38 @@ export default function ProfilePage() {
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
-              </div>
+<input 
+  type="tel" 
+  name="phone" 
+  value={formData.phone} 
+  onChange={handlePhoneChange} 
+  placeholder="+919876543210" 
+  maxLength={15}
+  className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" 
+/>              </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Age</label>
-                <input type="number" name="age" value={formData.age} onChange={handleChange} min="18" max="100" placeholder="25" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="number" name="age" value={formData.age} onChange={handleChange} min="18" max="100" placeholder="25" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Gender</label>
                 <div className="flex flex-wrap gap-4 mt-2">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleChange} className="accent-amber-500 w-4 h-4" />
-                    <span className="text-sm">Male</span>
+                    <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleChange} className="accent-amber-500  w-4 h-4" />
+                    <span className="text-sm text-black">Male</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleChange} className="accent-amber-500 w-4 h-4" />
-                    <span className="text-sm">Female</span>
+                    <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleChange} className="accent-amber-500  w-4 h-4" />
+                    <span className="text-sm text-black">Female</span>
                   </label>
                 </div>
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Caste</label>
-                <input type="text" name="caste" value={formData.caste} onChange={handleChange} placeholder="e.g., Sheikh, Ansari" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="caste" value={formData.caste} onChange={handleChange} placeholder="e.g., Sheikh, Ansari" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
 
               {/* District Custom Select */}
@@ -402,12 +426,12 @@ export default function ProfilePage() {
               
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Profession</label>
-                <input type="text" name="profession" value={formData.profession} onChange={handleChange} placeholder="e.g., Teacher" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="profession" value={formData.profession} onChange={handleChange} placeholder="e.g., Teacher" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Education</label>
-                <input type="text" name="education" value={formData.education} onChange={handleChange} placeholder="e.g., B.Tech, M.A." className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="education" value={formData.education} onChange={handleChange} placeholder="e.g., B.Tech, M.A." className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
             </div>
 
@@ -438,29 +462,29 @@ export default function ProfilePage() {
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Height</label>
-                <input type="text" name="height" value={formData.height} onChange={handleChange} placeholder="e.g., 5 ft 6 in" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="height" value={formData.height} onChange={handleChange} placeholder="e.g., 5 ft 6 in" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Mother Tongue</label>
-                <input type="text" name="motherTongue" value={formData.motherTongue} onChange={handleChange} placeholder="e.g., Urdu, Hindi" className="w-full min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
+                <input type="text" name="motherTongue" value={formData.motherTongue} onChange={handleChange} placeholder="e.g., Urdu, Hindi" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 sm:py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 text-sm overflow-hidden text-ellipsis" />
               </div>
             </div>
 
             <div className="space-y-4 sm:space-y-5 pt-2 w-full">
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">About Me (Bio)</label>
-                <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} placeholder="Tell us about your personality..." className="w-full min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
+                <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} placeholder="Tell us about your personality..." className="w-full text-black min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Family Details</label>
-                <textarea name="familyDetails" value={formData.familyDetails} onChange={handleChange} rows={3} placeholder="Tell us about your parents, siblings..." className="w-full min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
+                <textarea name="familyDetails" value={formData.familyDetails} onChange={handleChange} rows={3} placeholder="Tell us about your parents, siblings..." className="w-full text-black min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
               </div>
 
               <div className="min-w-0 w-full">
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Partner Preferences</label>
-                <textarea name="partnerPreferences" value={formData.partnerPreferences} onChange={handleChange} rows={3} placeholder="What kind of life partner are you looking for?" className="w-full min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
+                <textarea name="partnerPreferences" value={formData.partnerPreferences} onChange={handleChange} rows={3} placeholder="What kind of life partner are you looking for?" className="w-full text-black min-w-0 max-w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 resize-none text-sm" />
               </div>
             </div>
 

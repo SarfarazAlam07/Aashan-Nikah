@@ -172,7 +172,7 @@ export default function UserLayout({
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
               <span className="text-white text-lg">🕌</span>
             </div>
-            <span className="font-bold text-gray-800 dark:text-white">Nikah Aasan</span>
+            <span className="font-bold text-gray-800 dark:text-white">Barkati Nikah</span>
           </Link>
         </div>
 
@@ -255,7 +255,7 @@ export default function UserLayout({
               <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
                 <span className="text-white text-lg">🕌</span>
               </div>
-              <span className="font-bold text-gray-800 dark:text-white">Nikah Aasan</span>
+              <span className="font-bold text-gray-800 dark:text-white">Barkati Nikah</span>
             </Link>
             <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-dark-100 rounded-lg">
               <FiX size={18} className="text-gray-600 dark:text-gray-400" />
@@ -334,7 +334,7 @@ export default function UserLayout({
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
               <span className="text-white text-lg">🕌</span>
             </div>
-            <span className="font-bold text-gray-800 dark:text-white">Nikah Aasan</span>
+            <span className="font-bold text-gray-800 dark:text-white">Barkati Nikah</span>
           </Link>
           
           <div className="flex items-center gap-2">

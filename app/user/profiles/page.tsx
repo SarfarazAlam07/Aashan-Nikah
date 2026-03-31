@@ -18,7 +18,8 @@ import {
   FiClock,
   FiRefreshCw,
   FiGrid,
-  FiList
+  FiList,
+  FiMail // 🔥 Added FiMail for Received button
 } from 'react-icons/fi';
 import { FaVenusMars, FaGraduationCap, FaStar, FaRegHeart, FaHeart as FaHeartSolid } from 'react-icons/fa';
 import toast from 'react-hot-toast';
@@ -239,18 +240,19 @@ export default function ProfilesPage() {
     }
   };
 
-  const getRequestStatus = (userId: string): string | null => {
+  // 🔥 FIXED: This function now returns an object indicating both status AND direction
+  const getRequestInfo = (userId: string) => {
     const sent = sentRequests.find((r: any) => {
       const rId = r.receiverId?._id || r.receiverId;
       return rId === userId;
     });
-    if (sent) return sent.status;
+    if (sent) return { status: sent.status, isIncoming: false };
     
     const received = receivedRequests.find((r: any) => {
       const rId = r.senderId?._id || r.senderId;
       return rId === userId;
     });
-    if (received) return received.status;
+    if (received) return { status: received.status, isIncoming: true };
     
     return null;
   };
@@ -424,16 +426,18 @@ export default function ProfilesPage() {
                   key={profile._id} 
                   profile={profile} 
                   onSendRista={handleSendRista}
-                  requestStatus={getRequestStatus(profile._id)}
+                  requestInfo={getRequestInfo(profile._id)}
                   currentUserGender={user?.gender}
+                  router={router}
                 />
               ) : (
                 <ListProfileCard 
                   key={profile._id} 
                   profile={profile} 
                   onSendRista={handleSendRista}
-                  requestStatus={getRequestStatus(profile._id)}
+                  requestInfo={getRequestInfo(profile._id)}
                   currentUserGender={user?.gender}
+                  router={router}
                 />
               )
             ))}
@@ -565,18 +569,19 @@ export default function ProfilesPage() {
 }
 
 // Grid Profile Card Component
-function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGender }: { 
+function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router }: { 
   profile: Profile; 
   onSendRista: (profile: Profile) => void;
-  requestStatus: string | null;
+  requestInfo: { status: string, isIncoming: boolean } | null;
   currentUserGender?: string;
+  router: any;
 }) {
   const isSameGender = currentUserGender === profile.gender;
   
   return (
     <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
       
-      {/* 🔥 NAYA HEADER: Blurred Background Effect 🔥 */}
+      {/* HEADER */}
       <div className="h-24 relative overflow-hidden bg-gray-900">
         {profile.imageUrl ? (
           <>
@@ -617,7 +622,7 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">{profile.age} yrs • {profile.caste || 'N/A'}</p>
           </div>
-          {requestStatus === 'ACCEPTED' && (
+          {requestInfo?.status === 'ACCEPTED' && (
             <FaHeartSolid className="text-red-500" size={14} />
           )}
         </div>
@@ -657,22 +662,30 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
              <button disabled className="flex-1 flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400 py-2 rounded-lg text-xs font-medium cursor-not-allowed">
                Not Allowed
              </button>
-          ) : !requestStatus ? (
+          ) : !requestInfo ? (
             <button
               onClick={() => onSendRista(profile)}
               className="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-medium transition shadow-sm"
             >
               <FiHeart size={12} /> Send
             </button>
-          ) : requestStatus === 'ACCEPTED' ? (
+          ) : requestInfo.status === 'ACCEPTED' ? (
             <button disabled className="flex-1 flex items-center justify-center gap-1 bg-green-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
               <FiCheckCircle size={12} /> Accepted
             </button>
-          ) : requestStatus === 'PENDING_ADMIN' ? (
+          ) : requestInfo.isIncoming ? (
+            // 🔥 FIXED: Incoming Request Button Logic 🔥
+            <button 
+              onClick={() => router.push('/user/requests')} 
+              className="flex-1 flex items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-xs font-medium"
+            >
+              <FiMail size={12} /> Received
+            </button>
+          ) : requestInfo.status === 'PENDING_ADMIN' ? (
             <button disabled className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
               <FiClock size={12} /> Pending
             </button>
-          ) : requestStatus === 'SENT_TO_USER' ? (
+          ) : requestInfo.status === 'SENT_TO_USER' ? (
             <button disabled className="flex-1 flex items-center justify-center gap-1 bg-blue-500 text-white py-2 rounded-lg text-xs font-medium opacity-70 cursor-not-allowed">
               <FiMessageCircle size={12} /> Sent
             </button>
@@ -681,7 +694,7 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
               onClick={() => onSendRista(profile)}
               className="flex-1 flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-xs font-medium transition"
             >
-              <FiHeart size={12} /> Send
+              <FiHeart size={12} /> Send Again
             </button>
           )}
         </div>
@@ -691,11 +704,12 @@ function GridProfileCard({ profile, onSendRista, requestStatus, currentUserGende
 }
 
 // List Profile Card Component
-function ListProfileCard({ profile, onSendRista, requestStatus, currentUserGender }: { 
+function ListProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router }: { 
   profile: Profile; 
   onSendRista: (profile: Profile) => void;
-  requestStatus: string | null;
+  requestInfo: { status: string, isIncoming: boolean } | null;
   currentUserGender?: string;
+  router: any;
 }) {
   const isSameGender = currentUserGender === profile.gender;
 
@@ -748,22 +762,30 @@ function ListProfileCard({ profile, onSendRista, requestStatus, currentUserGende
              <button disabled className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-lg text-xs font-medium cursor-not-allowed">
                Not Allowed
              </button>
-          ) : !requestStatus ? (
+          ) : !requestInfo ? (
             <button
               onClick={() => onSendRista(profile)}
               className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
             >
               <FiHeart size={12} /> Send
             </button>
-          ) : requestStatus === 'ACCEPTED' ? (
+          ) : requestInfo.status === 'ACCEPTED' ? (
             <button disabled className="px-3 py-2 bg-green-500 text-white rounded-lg text-xs font-medium opacity-70 cursor-not-allowed flex items-center gap-1">
               <FiCheckCircle size={12} /> Accepted
             </button>
-          ) : requestStatus === 'PENDING_ADMIN' ? (
+          ) : requestInfo.isIncoming ? (
+            // 🔥 FIXED: Incoming Request Button Logic 🔥
+            <button 
+              onClick={() => router.push('/user/requests')} 
+              className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium flex items-center gap-1"
+            >
+              <FiMail size={12} /> Received
+            </button>
+          ) : requestInfo.status === 'PENDING_ADMIN' ? (
             <button disabled className="px-3 py-2 bg-yellow-500 text-white rounded-lg text-xs font-medium opacity-70 cursor-not-allowed flex items-center gap-1">
               <FiClock size={12} /> Pending
             </button>
-          ) : requestStatus === 'SENT_TO_USER' ? (
+          ) : requestInfo.status === 'SENT_TO_USER' ? (
             <button disabled className="px-3 py-2 bg-blue-500 text-white rounded-lg text-xs font-medium opacity-70 cursor-not-allowed flex items-center gap-1">
               <FiMessageCircle size={12} /> Sent
             </button>
@@ -772,7 +794,7 @@ function ListProfileCard({ profile, onSendRista, requestStatus, currentUserGende
               onClick={() => onSendRista(profile)}
               className="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
             >
-              <FiHeart size={12} /> Send
+              <FiHeart size={12} /> Send Again
             </button>
           )}
         </div>
