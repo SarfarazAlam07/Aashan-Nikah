@@ -10,12 +10,11 @@ export async function POST(request: Request) {
     const { secretKey, name, email, password } = await request.json();
 
     // Secret key check 
-    if (secretKey !== 'YOUR_SECRET_ADMIN_KEY') {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const ADMIN_SECRET = process.env.ADMIN_CREATION_SECRET;
+if (secretKey !== ADMIN_SECRET) {
+  return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+}
+    
 
     // Check if user exists
     const existingUser = await User.findOne({ email });

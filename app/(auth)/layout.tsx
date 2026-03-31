@@ -1,7 +1,16 @@
-﻿export default function AuthLayout({
+﻿'use client';
+
+import { GoogleOAuthProvider } from '@react-oauth/google';
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <div>{children}</div>;
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      {children}
+    </GoogleOAuthProvider>
+  );
 }

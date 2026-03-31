@@ -6,12 +6,13 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const userId = params.id;
+    const resolvedParams = await params; 
+    const userId = resolvedParams.id;
     console.log('🔍 Fetching user:', userId);
     
     // Special case for super admin
@@ -94,12 +95,13 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
     
-    const userId = params.id;
+   const resolvedParams = await params; 
+    const requestId = resolvedParams.id;
     
     // Get token from header
     const authHeader = request.headers.get('authorization');

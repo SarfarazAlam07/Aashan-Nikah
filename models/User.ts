@@ -21,15 +21,12 @@ export interface IUser extends Document {
   role: 'SUPER_ADMIN' | 'MUFTI' | 'USER';
   isVerified: boolean;
   provider: 'email' | 'google';
-  
-  // 🔥 YAHAN SIRF TYPESCRIPT TYPES HOTE HAIN 🔥
   motherTongue?: string;
   maritalStatus?: string;
   height?: string;
   postedBy?: string;
   familyDetails?: string;
   partnerPreferences?: string;
-  
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -38,13 +35,7 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true },
-    email: { 
-      type: String, 
-      required: true, 
-      unique: true,  
-      lowercase: true, 
-      trim: true 
-    },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, select: false },
     phone: { type: String, trim: true },
     age: { type: Number, min: 18, max: 100 },
@@ -58,15 +49,9 @@ const UserSchema = new Schema<IUser>(
     experience: { type: String },
     bio: { type: String, maxlength: 500 },
     imageUrl: { type: String },
-    role: { 
-      type: String, 
-      enum: ['SUPER_ADMIN', 'MUFTI', 'USER'], 
-      default: 'USER'
-    },
+    role: { type: String, enum: ['SUPER_ADMIN', 'MUFTI', 'USER'], default: 'USER' },
     isVerified: { type: Boolean, default: false },
     provider: { type: String, enum: ['email', 'google'], default: 'email' },
-    
-    // 🔥 ASLI MONGOOSE SCHEMA RULES YAHAN AAYENGE 🔥
     motherTongue: { type: String, trim: true },
     maritalStatus: { type: String, enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Never Married' },
     height: { type: String },
@@ -80,7 +65,6 @@ const UserSchema = new Schema<IUser>(
 // Hash password before saving
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password') || !this.password) return next();
-  
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
