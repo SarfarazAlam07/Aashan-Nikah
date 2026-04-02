@@ -15,7 +15,7 @@ export interface JWTPayload {
 export function generateToken(payload: JWTPayload): string {
   console.log('🔐 Generating token for:', payload.email);
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN
+    expiresIn: JWT_EXPIRES_IN as any
   });
 }
 
