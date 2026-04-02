@@ -238,7 +238,7 @@ export default function AdminDashboard() {
           <ActionButton
             icon={<FiMapPin size={18} />}
             label="Location Stats"
-            onClick={() => toast.info('Coming soon!')}
+            onClick={() => toast('Coming soon!', { icon: 'ℹ️' })} 
             color="orange"
           />
         </div>
