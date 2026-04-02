@@ -311,18 +311,18 @@ export default function AdminProfilesPage() {
                 {/* Details barkaraar hain but fonts compact kiye hain */}
                 <div className="space-y-1 mb-3 text-[11px] text-gray-400 flex-grow">
                   <div className="flex items-center gap-1.5 py-0.5 border-b border-slate-700/30 last:border-0">
-                    <FiMapPin className="text-amber-500" sizes={11} />
+                    <FiMapPin className="text-amber-500" size={11} />
                     <span className="truncate">{profile.city}, {profile.district}</span>
                   </div>
                   {profile.profession && (
                     <div className="flex items-center gap-1.5 py-0.5 border-b border-slate-700/30 last:border-0">
-                      <FiBriefcase className="text-amber-500" sizes={11} />
+                      <FiBriefcase className="text-amber-500" size={11} />
                       <span className="truncate">{profile.profession}</span>
                     </div>
                   )}
                   {profile.education && (
                     <div className="flex items-center gap-1.5 py-0.5 border-b border-slate-700/30 last:border-0">
-                      <FaGraduationCap className="text-amber-500" sizes={11} />
+                      <FaGraduationCap className="text-amber-500" size={11} />
                       <span className="truncate">{profile.education}</span>
                     </div>
                   )}
