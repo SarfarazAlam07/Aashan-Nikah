@@ -57,9 +57,9 @@ export default function SignUpPage() {
     district.label.toLowerCase().includes(districtSearch.toLowerCase())
   );
 
-  // Filter cities based on selected district and search
+  // 🔥 NAYA CODE: Yahan (city: any) lagana hai 🔥
   const filteredCities = selectedDistrict && !isCustomDistrict
-    ? ALL_CITIES.filter(city => 
+    ? ALL_CITIES.filter((city: any) => 
         city.district === selectedDistrict && 
         city.label.toLowerCase().includes(citySearch.toLowerCase())
       )
