@@ -33,13 +33,26 @@ export const metadata: Metadata = {
   title: {
     default: 'Barkati Nikah Service - Halal Islamic Matrimony',
     template: '%s | Barkati Nikah Service',
+    
   },
   description: 'Barkati Nikah Service - India\'s most trusted halal Islamic matrimony platform by Maulana Farooq. Serving Patna, Chhapra & across Bihar. Find your halal life partner.',
   keywords: [
     'Barkati Nikah Service',
+    'Nikah',
+    'Aao Nikah ashan kare',
+    'Muslim acha ladka',
+    'Muslim acha ladki',
+    'Muslim acha rista',
+    'Best rista in chhapra',
+    'Best rista in patna',
+    'Nikah Service',
     'Barkati Nikah',
+    'halal rista',
+    'halal rista chhapra ',
+    'rista chhapra ',
     'Barkati',
     'Barkati Nikah Fast Service',
+    'Nikah Fast Service',
     'Islamic matrimony',
     'halal marriage',
     'Muslim matrimony Bihar',
@@ -95,6 +108,10 @@ export const metadata: Metadata = {
     canonical: 'https://barkatinikah.com',
   },
   category: 'matrimony',
+  // 🔥 YAHAN TERA GOOGLE SEARCH CONSOLE KA CODE ADD HO GAYA HAI 🔥
+  verification: {
+    google: 'N9KyvbLeju2mepJmAC4i_WRUEu9TqpZDPsCbpZzEDcg',
+  },
 };
 
 export default function RootLayout({
