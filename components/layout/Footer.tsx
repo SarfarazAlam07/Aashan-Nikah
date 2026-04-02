@@ -71,15 +71,15 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-gray-400">
                 <FaMapMarkerAlt className="text-green-400 mt-0.5 flex-shrink-0" size={14} />
-                <span>Patna, Bihar, India</span>
+                <span>Chhapra, Bihar, India</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <FaPhone className="text-green-400 flex-shrink-0" size={14} />
-                <span>+91 12345 67890</span>
+                <span>+91 7979710542</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-gray-400">
                 <FaEnvelope className="text-green-400 flex-shrink-0" size={14} />
-                <span>barkatinikah.com</span>
+                <span>farooqueahmadbarkati@gmail.com</span>
               </li>
             </ul>
           </div>
