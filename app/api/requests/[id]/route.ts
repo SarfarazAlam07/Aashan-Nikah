@@ -6,7 +6,7 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+ { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
@@ -31,7 +31,8 @@ export async function PUT(
       );
     }
     
-    const requestId = params.id;
+    const resolvedParams = await params;
+    const requestId = resolvedParams.id; 
     const { status } = await request.json();
     
     console.log('📝 User responding to request:', requestId);

@@ -101,7 +101,7 @@ export async function PUT(
     await connectDB();
     
    const resolvedParams = await params; 
-    const requestId = resolvedParams.id;
+   const userId = resolvedParams.id;
     
     // Get token from header
     const authHeader = request.headers.get('authorization');
