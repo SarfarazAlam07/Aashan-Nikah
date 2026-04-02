@@ -224,7 +224,7 @@ export default function RequestsPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">When someone sends you a request, it will appear here</p>
             </div>
           ) : (
-            receivedRequests.map((req) => {
+            receivedRequests.map((req:any) => {
               const status = getStatusConfig(req.status);
               const StatusIcon = status.icon;
               
@@ -330,7 +330,7 @@ export default function RequestsPage() {
               </Link>
             </div>
           ) : (
-            sentRequests.map((req) => {
+            sentRequests.map((req:any) => {
               const status = getStatusConfig(req.status);
               const StatusIcon = status.icon;
               
