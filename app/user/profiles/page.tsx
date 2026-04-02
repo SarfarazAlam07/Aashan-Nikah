@@ -1,7 +1,6 @@
-// app/user/profiles/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -20,12 +19,16 @@ import {
   FiRefreshCw,
   FiGrid,
   FiList,
-  FiMail
+  FiMail,
+  FiCamera,
+  FiEdit2,
+  FiChevronDown
 } from 'react-icons/fi';
 import { FaVenusMars, FaGraduationCap, FaStar, FaRegHeart, FaHeart as FaHeartSolid } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useProfiles } from '@/lib/hooks/useProfiles';
 import { debounce } from 'lodash';
+import { BIHAR_DISTRICTS, ALL_CITIES } from '@/lib/locations';
 
 interface Profile {
   _id: string;
@@ -40,6 +43,64 @@ interface Profile {
   bio?: string;
   imageUrl?: string;
   isVerified: boolean;
+}
+
+// 🔥 CUSTOM SELECT COMPONENT 🔥
+function CustomSelect({ name, value, options, onChange, placeholder = "Select option..." }: any) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedLabel = options.find((opt: any) => opt.value === value)?.label || placeholder;
+
+  return (
+    <div className={`relative w-full min-w-0 ${isOpen ? 'z-40' : 'z-10'}`} ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2.5 sm:py-2 border border-gray-200 dark:border-dark-100 rounded-lg focus:ring-2 focus:ring-green-500 text-xs sm:text-sm bg-white dark:bg-dark-100 text-left flex justify-between items-center transition-shadow shadow-sm"
+      >
+        <span className={`truncate pr-2 ${!value ? 'text-gray-400' : 'text-gray-800 dark:text-white'}`}>
+          {selectedLabel}
+        </span>
+        <FiChevronDown size={14} className={`text-gray-500 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <ul className="absolute left-0 right-0 mt-1 bg-white dark:bg-dark-100 border border-gray-200 dark:border-dark-100 rounded-lg shadow-2xl max-h-48 overflow-y-auto py-1 animate-fade-in z-50">
+          {options.length === 0 ? (
+            <li className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 text-center">No options found</li>
+          ) : (
+            options.map((opt: any) => (
+              <li
+                key={opt.value}
+                onClick={() => {
+                  onChange({ target: { name, value: opt.value } });
+                  setIsOpen(false);
+                }}
+                className={`px-3 py-2.5 text-xs sm:text-sm cursor-pointer truncate transition-colors ${
+                  value === opt.value 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold border-l-2 border-green-500' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                {opt.label}
+              </li>
+            ))
+          )}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function ProfilesPage() {
@@ -411,6 +472,21 @@ export default function ProfilesPage() {
           </div>
         )}
 
+        {/* 🔥 TechEraX Link Mention 🔥 */}
+        <div className="mt-12 pb-8 text-center">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-wider uppercase flex items-center justify-center gap-1">
+            Crafted with ❤️ by 
+            <a 
+              href="https://tech-era-x.vercel.app/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="font-bold text-amber-600/80 hover:text-amber-600 transition"
+            >
+              TechEraX
+            </a>
+          </p>
+        </div>
+
         {/* Live Updates Indicator */}
         <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 pointer-events-none">
           <div className="flex items-center gap-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-md text-xs border border-gray-200 dark:border-gray-700">
@@ -514,16 +590,14 @@ export default function ProfilesPage() {
   );
 }
 
-// 🔥 GRID CARD FIX: Fixed height issue & Image Click logic 🔥
-// 🔥 Naya Code (Any laga diya taaki TS chup rahe)
+// 🔥 GRID CARD FIX: Fixed Dark Mode Text & Image Click 🔥
 function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {  const isSameGender = currentUserGender === profile.gender;
   
   return (
-    // Added flex flex-col h-full to make all cards same height
-    <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col h-full">
+    <div className="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col h-full relative">
       
       {/* HEADER */}
-      <div className="h-24 relative overflow-hidden bg-gray-900 flex-shrink-0">
+      <div className="h-24 relative overflow-hidden bg-gray-900 flex-shrink-0 z-0">
         {profile.imageUrl ? (
           <>
             <img 
@@ -543,9 +617,10 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
             <span>Verified</span>
           </div>
         )}
-        
-        {/* 🔥 FIXED IMAGE CLICK: Added z-index & stopPropagation 🔥 */}
-        <div className="absolute bottom-3 left-4 z-30">
+      </div>
+
+      {/* 🔥 Z-INDEX FIX: Put the avatar in the main card container, absolute positioned, instead of strictly inside the header 🔥 */}
+      <div className="absolute top-16 left-4 z-20">
           <div 
             className={`w-14 h-14 rounded-xl border-[2px] border-white dark:border-gray-800 shadow-lg flex items-center justify-center text-2xl overflow-hidden bg-white dark:bg-gray-700 ${profile.imageUrl ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
             onClick={(e) => {
@@ -563,11 +638,10 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
                 profile.gender === 'male' ? '👨' : '👩'
               )}
           </div>
-        </div>
       </div>
 
-      {/* CARD BODY (FLEX GROW TO PUSH BUTTONS DOWN) */}
-      <div className="pt-3 p-4 flex flex-col flex-grow">
+      {/* CARD BODY */}
+      <div className="pt-8 p-4 flex flex-col flex-grow z-10"> {/* 🔥 INCREASED pt-8 TO ACCOUNT FOR THE AVATAR 🔥 */}
         <div className="flex items-start justify-between mb-2">
           <div className="min-w-0 pr-2">
             <h3 className="text-sm font-semibold text-gray-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition truncate">
@@ -580,7 +654,8 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
           )}
         </div>
 
-        <div className="space-y-1.5 mb-3 text-[11px] text-gray-600 dark:text-gray-400">
+        {/* 🔥 FIXED TEXT COLORS FOR DARK MODE 🔥 */}
+        <div className="space-y-1.5 mb-3 text-[11px] text-gray-600 dark:text-gray-300">
           <div className="flex items-center gap-1.5 py-0.5">
             <FiMapPin className="text-amber-500 dark:text-amber-400 flex-shrink-0" size={11} />
             <span className="truncate">{profile.city}, {profile.district}</span>
@@ -599,16 +674,15 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
           )}
         </div>
 
-        {/* Bio Section - Set min height so it looks balanced or let flex-grow handle it */}
         <div className="mb-3 flex-grow">
           {profile.bio ? (
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-lg italic">"{profile.bio}"</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-300 line-clamp-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-lg italic">"{profile.bio}"</p>
           ) : (
-            <div className="h-[36px]"></div> // Placeholder so cards without bio don't shrink weirdly
+            <div className="h-[36px]"></div>
           )}
         </div>
 
-        {/* FOOTER ACTIONS - mt-auto pushes this to the very bottom */}
+        {/* FOOTER ACTIONS */}
         <div className="flex gap-1.5 mt-auto pt-2 border-t border-gray-100 dark:border-gray-700/50">
           <Link
             href={`/user/profile/${profile._id}`}
@@ -662,7 +736,6 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
 }
 
 // List Profile Card Component
-// 🔥 Naya Code
 function ListProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {  const isSameGender = currentUserGender === profile.gender;
 
   return (
@@ -700,13 +773,14 @@ function ListProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
               <span className="text-[9px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded-md whitespace-nowrap">✓ Verified</span>
             )}
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
-            <span className="flex items-center gap-1 whitespace-nowrap"><FiMapPin size={10} className="text-amber-500"/> {profile.city}</span>
+          {/* 🔥 FIXED TEXT COLORS FOR DARK MODE 🔥 */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-gray-300">
+            <span className="flex items-center gap-1 whitespace-nowrap"><FiMapPin size={10} className="text-amber-500 dark:text-amber-400"/> {profile.city}</span>
             {profile.caste && <span className="whitespace-nowrap">• {profile.caste}</span>}
-            {profile.profession && <span className="flex items-center gap-1 whitespace-nowrap"><FiBriefcase size={10} className="text-amber-500"/> {profile.profession}</span>}
+            {profile.profession && <span className="flex items-center gap-1 whitespace-nowrap"><FiBriefcase size={10} className="text-amber-500 dark:text-amber-400"/> {profile.profession}</span>}
           </div>
           {profile.bio && (
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 line-clamp-1 italic">"{profile.bio}"</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-300 mt-1 line-clamp-1 italic">"{profile.bio}"</p>
           )}
         </div>
         

@@ -1,3 +1,4 @@
+// app/user/profile/[id]/page.tsx
 'use client';
 
 import { useState, useEffect, use } from 'react';
@@ -128,7 +129,6 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
     }
 
     if (requestData.isIncoming) {
-      // Incoming request buttons
       if (requestData.status === 'SENT_TO_USER') {
         return (
           <button onClick={() => router.push('/user/requests')} className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-blue-500 text-white font-bold transition-all shadow-lg hover:bg-blue-600 hover:scale-105">
@@ -136,10 +136,9 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
           </button>
         );
       } else {
-        return <button disabled className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gray-200 text-gray-500 font-bold cursor-not-allowed"><FiClock size={20} /> Processing Request</button>;
+        return <button disabled className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-gray-200 dark:bg-gray-800 text-gray-500 font-bold cursor-not-allowed"><FiClock size={20} /> Processing Request</button>;
       }
     } else {
-      // Outgoing request buttons
       switch(requestData.status) {
         case 'PENDING_ADMIN': return <button disabled className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-yellow-500 text-white font-bold opacity-80 cursor-not-allowed"><FiClock size={20} /> Pending Admin Approval</button>;
         case 'SENT_TO_USER': return <button disabled className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-blue-500 text-white font-bold opacity-80 cursor-not-allowed"><FiMessageCircle size={20} /> Request Sent</button>;
@@ -149,20 +148,20 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
   };
 
   if (loading) return <div className="min-h-[70vh] flex items-center justify-center"><div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div></div>;
-  if (!profile) return <div className="text-center py-20"><h2 className="text-2xl font-bold">Profile not found</h2><button onClick={() => router.back()} className="text-green-600">Go Back</button></div>;
+  if (!profile) return <div className="text-center py-20"><h2 className="text-2xl font-bold dark:text-white">Profile not found</h2><button onClick={() => router.back()} className="text-green-600">Go Back</button></div>;
 
   return (
     <div className="pb-12 max-w-5xl mx-auto relative px-2 sm:px-0">
       <div className="mb-6"><button onClick={() => router.back()} className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-green-600 transition font-medium"><FiChevronLeft size={20} /> Back to Profiles</button></div>
 
-      <div className="bg-white dark:bg-dark-200 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700/50">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700/50">
         <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-gray-900">
           {profile.imageUrl ? <img src={profile.imageUrl} alt="bg" className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50" /> : <div className={`absolute inset-0 w-full h-full ${profile.gender === 'male' ? 'bg-gradient-to-br from-blue-900 to-slate-900' : 'bg-gradient-to-br from-pink-900 to-slate-900'}`}></div>}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
           {profile.isVerified && <div className="absolute top-6 right-6 bg-green-500/20 backdrop-blur-md border border-green-500/30 px-4 py-1.5 rounded-full flex items-center gap-2 text-green-400 font-medium text-sm shadow-lg z-20"><FiCheckCircle /> Verified Profile</div>}
 
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
-            <div className={`w-40 h-40 sm:w-44 sm:h-44 rounded-full border-[6px] border-white dark:border-dark-200 shadow-2xl overflow-hidden bg-white dark:bg-gray-800 flex items-center justify-center ${profile.imageUrl ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={() => profile.imageUrl && setShowImageModal(true)}>
+            <div className={`w-40 h-40 sm:w-44 sm:h-44 rounded-full border-[6px] border-white dark:border-gray-800 shadow-2xl overflow-hidden bg-white dark:bg-gray-700 flex items-center justify-center ${profile.imageUrl ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`} onClick={() => profile.imageUrl && setShowImageModal(true)}>
               {profile.imageUrl ? <img src={profile.imageUrl} alt={profile.name} className="w-full h-full object-cover aspect-square" /> : <span className="text-6xl">{profile.gender === 'male' ? '👨' : '👩'}</span>}
             </div>
           </div>
@@ -172,9 +171,9 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white capitalize">{profile.name}</h1>
           {profile.profession && <p className="text-lg text-green-600 dark:text-green-400 font-medium mt-1">{profile.profession}</p>}
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-5 text-gray-600 dark:text-gray-300 font-medium">
-            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-100 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100"><FiUser className="text-green-500"/> {profile.age} Yrs {profile.height ? `, ${profile.height}` : ''}</span>
-            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-100 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 capitalize"><FiHeart className="text-green-500"/> {profile.maritalStatus || profile.gender}</span>
-            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-dark-100 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100"><FiMapPin className="text-green-500"/> {profile.city || profile.district}</span>
+            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900/50 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"><FiUser className="text-green-500"/> {profile.age} Yrs {profile.height ? `, ${profile.height}` : ''}</span>
+            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900/50 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 capitalize"><FiHeart className="text-green-500"/> {profile.maritalStatus || profile.gender}</span>
+            <span className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900/50 px-3 py-1.5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"><FiMapPin className="text-green-500"/> {profile.city || profile.district}</span>
           </div>
           <div className="mt-8 flex justify-center">{getRequestButton()}</div>
         </div>
@@ -183,20 +182,20 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="lg:col-span-2 space-y-8">
           {profile.bio && (
-            <div className="bg-white dark:bg-dark-200 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100"><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiUser className="text-green-600"/></div> About Me</h3><p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base whitespace-pre-wrap">{profile.bio}</p></div>
+            <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700"><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiUser className="text-green-600"/></div> About Me</h3><p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base whitespace-pre-wrap">{profile.bio}</p></div>
           )}
           {profile.familyDetails && (
-            <div className="bg-white dark:bg-dark-200 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100"><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiUsers className="text-green-600"/></div> Family Details</h3><p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base whitespace-pre-wrap">{profile.familyDetails}</p></div>
+            <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700"><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiUsers className="text-green-600"/></div> Family Details</h3><p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base whitespace-pre-wrap">{profile.familyDetails}</p></div>
           )}
-          <div className="bg-white dark:bg-dark-200 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 grid sm:grid-cols-2 gap-8">
-            <div><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 rounded-lg"><FiBookOpen className="text-green-600"/></div> Education</h3><p className="font-semibold text-gray-800 dark:text-white text-lg">{profile.education || 'Not Specified'}</p></div>
-            <div><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 rounded-lg"><FiBriefcase className="text-green-600"/></div> Profession</h3><p className="font-semibold text-gray-800 dark:text-white text-lg">{profile.profession || 'Not Specified'}</p></div>
+          <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 grid sm:grid-cols-2 gap-8">
+            <div><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiBookOpen className="text-green-600"/></div> Education</h3><p className="font-semibold text-gray-800 dark:text-white text-lg">{profile.education || 'Not Specified'}</p></div>
+            <div><h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg"><FiBriefcase className="text-green-600"/></div> Profession</h3><p className="font-semibold text-gray-800 dark:text-white text-lg">{profile.profession || 'Not Specified'}</p></div>
           </div>
         </div>
 
         <div className="space-y-8">
-          <div className="bg-white dark:bg-dark-200 p-6 sm:p-7 rounded-3xl shadow-sm border border-gray-100">
-            <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-5 border-b pb-3">Personal Info</h4>
+          <div className="bg-white dark:bg-gray-800 p-6 sm:p-7 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-5 border-b dark:border-gray-700 pb-3">Personal Info</h4>
             <div className="space-y-3">
               <InfoRow label="Age" value={`${profile.age} Years`} />
               <InfoRow label="Height" value={profile.height || 'Not Specified'} />
@@ -211,9 +210,24 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
           </div>
 
           {profile.partnerPreferences && (
-            <div className="bg-white dark:bg-dark-200 p-6 sm:p-7 rounded-3xl shadow-sm border border-gray-100"><h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><FiStar className="text-amber-500"/> Partner Preferences</h4><p className="text-gray-700 dark:text-gray-300 text-sm bg-amber-50 p-4 rounded-2xl border border-amber-100 whitespace-pre-wrap leading-relaxed">{profile.partnerPreferences}</p></div>
+            <div className="bg-white dark:bg-gray-800 p-6 sm:p-7 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700"><h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><FiStar className="text-amber-500"/> Partner Preferences</h4><p className="text-gray-700 dark:text-gray-300 text-sm bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl border border-amber-100 dark:border-amber-900/40 whitespace-pre-wrap leading-relaxed">{profile.partnerPreferences}</p></div>
           )}
         </div>
+      </div>
+
+      {/* 🔥 TechEraX Link Mention 🔥 */}
+      <div className="mt-12 text-center">
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 tracking-wider uppercase flex items-center justify-center gap-1">
+          Crafted with ❤️ by 
+          <a 
+            href="https://tech-era-x.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="font-bold text-amber-600/80 hover:text-amber-600 transition"
+          >
+            TechEraX
+          </a>
+        </p>
       </div>
 
       {showImageModal && profile?.imageUrl && (
@@ -228,11 +242,12 @@ export default function ViewProfilePage({ params }: { params: Promise<{ id: stri
   );
 }
 
+// 🔥 FIXED InfoRow: Dark Mode text visibility handled 🔥
 function InfoRow({ label, value, capitalize = false }: any) {
   return (
-    <div className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
-      <span className="text-gray-500 text-sm font-medium">{label}</span>
-      <span className={`text-gray-900 font-semibold text-sm text-right w-1/2 break-words ${capitalize ? 'capitalize' : ''}`}>{value}</span>
+    <div className="flex justify-between items-center py-2.5 border-b border-gray-50 dark:border-gray-700/50 last:border-0">
+      <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">{label}</span>
+      <span className={`text-gray-900 dark:text-gray-100 font-semibold text-sm text-right w-1/2 break-words ${capitalize ? 'capitalize' : ''}`}>{value}</span>
     </div>
   );
 }

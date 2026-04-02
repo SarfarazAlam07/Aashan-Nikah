@@ -83,3 +83,51 @@ export async function PUT(
     return NextResponse.json({ success: false, error: 'Failed to update request' }, { status: 500 });
   }
 }
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB();
+
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ success: false, error: 'No token provided' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const payload: any = verifyToken(token);
+
+    // 🔥 LOGIC FIX: Pehle check karo payload hai ya nahi
+    if (!payload) {
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    }
+
+    // 🕵️ DEBUG: Terminal me check karne ke liye ki role kya aa raha hai
+    console.log('👤 Current User Payload:', payload);
+
+    // Agar role admin nahi hai, toh check karo email super admin wala hai ya nahi
+    const isSuperAdmin = payload.email === process.env.SUPER_ADMIN_EMAIL;
+    
+    if (payload.role !== 'admin' && !isSuperAdmin) {
+      return NextResponse.json({ 
+        success: false, 
+        error: `Admin access required. Your role: ${payload.role || 'user'}` 
+      }, { status: 403 });
+    }
+
+    const resolvedParams = await params;
+    const requestId = resolvedParams.id;
+
+    const deletedRequest = await RistaRequest.findByIdAndDelete(requestId);
+
+    if (!deletedRequest) {
+      return NextResponse.json({ success: false, error: 'Request not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Deleted!' });
+
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
