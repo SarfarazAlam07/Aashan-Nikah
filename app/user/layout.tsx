@@ -181,10 +181,10 @@ export default function UserLayout({
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg overflow-hidden">
               {/* 🔥 FIX: Image properly rendering */}
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+              {(user as any)?.imageUrl ? (
+                <img src={(user as any).imageUrl} alt={user?.name} className="w-full h-full object-cover aspect-square" />
               ) : (
-                user.name?.charAt(0).toUpperCase()
+                user?.name?.charAt(0).toUpperCase()
               )}
             </div>
             <div className="flex-1 min-w-0">
