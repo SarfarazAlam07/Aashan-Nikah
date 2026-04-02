@@ -219,7 +219,7 @@ export default function UserLayout({
                   <Icon size={18} className={active ? 'text-green-600 dark:text-green-400' : ''} />
                   <span className="text-sm font-medium">{item.label}</span>
                 </div>
-                {item.badge > 0 && (
+                {(item.badge || 0) > 0 && (  
                   <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {item.badge}
                   </span>
@@ -265,11 +265,10 @@ export default function UserLayout({
           <div className="mx-4 mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-100 dark:border-green-800/30">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg overflow-hidden">
-                {/* 🔥 FIX: Image properly rendering */}
-                {user?.imageUrl ? (
-                  <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover aspect-square" />
+                {(user as any)?.imageUrl ? (
+                  <img src={(user as any).imageUrl} alt={user?.name} className="w-full h-full object-cover aspect-square" />
                 ) : (
-                  user.name?.charAt(0).toUpperCase()
+                  user?.name?.charAt(0).toUpperCase()
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -304,7 +303,7 @@ export default function UserLayout({
                     <Icon size={18} className={active ? 'text-green-600 dark:text-green-400' : ''} />
                     <span className="text-sm font-medium">{item.label}</span>
                   </div>
-                  {item.badge > 0 && (
+                  {(item.badge || 0) > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                       {item.badge}
                     </span>
