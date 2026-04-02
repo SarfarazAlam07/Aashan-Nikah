@@ -19,7 +19,7 @@ export default function UserInfo() {
 
   return (
     <div>
-      <h1>Welcome, {user.name}!</h1>
+      <h1>Welcome, {(user as any)?.name}!</h1>
     </div>
   );
 }
