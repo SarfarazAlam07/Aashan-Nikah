@@ -385,7 +385,7 @@ export default function ProfilesPage() {
           </div>
         ) : (
           <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-stretch' : 'space-y-4'}`}>
-            {profiles.map((profile) => (
+           {profiles.map((profile: any) => (
               viewMode === 'grid' ? (
                 <GridProfileCard 
                   key={profile._id} 
@@ -515,8 +515,8 @@ export default function ProfilesPage() {
 }
 
 // 🔥 GRID CARD FIX: Fixed height issue & Image Click logic 🔥
-function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {
-  const isSameGender = currentUserGender === profile.gender;
+// 🔥 Naya Code (Any laga diya taaki TS chup rahe)
+function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {  const isSameGender = currentUserGender === profile.gender;
   
   return (
     // Added flex flex-col h-full to make all cards same height
@@ -662,8 +662,8 @@ function GridProfileCard({ profile, onSendRista, requestInfo, currentUserGender,
 }
 
 // List Profile Card Component
-function ListProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {
-  const isSameGender = currentUserGender === profile.gender;
+// 🔥 Naya Code
+function ListProfileCard({ profile, onSendRista, requestInfo, currentUserGender, router, onImageClick }: any) {  const isSameGender = currentUserGender === profile.gender;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 p-3">

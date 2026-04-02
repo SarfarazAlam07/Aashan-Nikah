@@ -163,7 +163,7 @@ export default function ProfilePage() {
   };
 
   const filteredCities = selectedDistrict 
-    ? ALL_CITIES.filter(city => city.district === selectedDistrict)
+    ? ALL_CITIES.filter((city: any) => city.district === selectedDistrict) // 🔥 FIXED: Added (city: any)
     : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { target: { name: string, value: string } }) => {
