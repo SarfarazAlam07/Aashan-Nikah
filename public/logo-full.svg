@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde68a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(40, 20)">
+    <g transform="translate(0, 0)" filter="url(#shadow)">
+      <path d="M40 10 L120 10 L150 80 L120 150 L40 150 L10 80 Z" fill="url(#iconGrad)" rx="10"/>
+      
+      <path d="M80 50 C40 50 40 120 40 120 L120 120 C120 120 120 50 80 50 Z" fill="url(#goldGrad)"/>
+      
+      <path d="M80 30 A12 12 0 1 0 95 45 A10 10 0 1 1 80 30 Z" fill="url(#goldGrad)"/>
+      <circle cx="92" cy="38" r="3" fill="#ffffff"/>
+    </g>
+
+    <g transform="translate(190, 85)">
+      <text x="0" y="0" font-family="'Segoe UI', -apple-system, sans-serif" font-weight="900" font-size="64" fill="#1f2937" letter-spacing="-1">
+        BARKATI
+      </text>
+      
+      <text x="290" y="0" font-family="'Segoe UI', -apple-system, sans-serif" font-weight="900" font-size="64" fill="#16a34a" letter-spacing="-1">
+        NIKAH
+      </text>
+
+      <text x="5" y="40" font-family="'Segoe UI', -apple-system, sans-serif" font-weight="600" font-size="22" fill="#6b7280" letter-spacing="4">
+        FAST SERVICE
+      </text>
+      
+      <rect x="5" y="55" width="40" height="4" rx="2" fill="#f59e0b"/>
+    </g>
+  </g>
+</svg>

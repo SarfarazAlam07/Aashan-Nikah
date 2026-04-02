@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiMenu, FiX, FiLogIn, FiUserPlus, FiHeart } from 'react-icons/fi';
-import { FaMosque } from 'react-icons/fa';
+import { FiMenu, FiX, FiLogIn, FiUserPlus } from 'react-icons/fi';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +18,6 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ✅ Only keep pages that exist
   const navLinks = [
     { href: '/', label: 'Home', active: pathname === '/' },
     { href: '/about', label: 'About', active: pathname === '/about' },
@@ -38,41 +36,21 @@ export default function Header() {
     `}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
-          {/* Logo */}
+          
+          {/* 🔥 LOGO SECTION 🔥 */}
           <Link 
             href="/" 
-            className="flex items-center gap-2 group relative"
+            className="flex items-center group relative overflow-hidden h-12 md:h-16"
           >
-            {/* Logo Icon */}
-            <div className="relative">
-              <div className={`
-                w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
-                ${scrolled 
-                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg' 
-                  : 'bg-white/20 backdrop-blur-sm'
-                }
-                group-hover:scale-110
-              `}>
-                <FaMosque className="text-white text-xl md:text-2xl" />
-                <FiHeart className="absolute -top-1 -right-1 text-red-500 text-[10px] animate-pulse" />
-              </div>
-            </div>
-            
-            {/* Logo Text */}
-            <div className="flex flex-col">
-              <span className={`
-                font-bold text-base md:text-xl leading-tight transition-colors duration-300
-                ${scrolled ? 'text-gray-800 dark:text-white' : 'text-white'}
-              `}>
-                Barkati Nikah Fast Service
-              </span>
-              <span className={`
-                text-[10px] md:text-xs leading-tight transition-colors duration-300
-                ${scrolled ? 'text-gray-500 dark:text-gray-400' : 'text-white/90'}
-              `}>
-                हलाल इस्लामिक मैट्रिमोनी
-              </span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Barkati Fast Nikah" 
+              className={`
+                h-full w-auto object-contain transition-all duration-300
+                group-hover:scale-105
+                ${scrolled ? 'brightness-100' : 'brightness-0 invert'} 
+              `}
+            />
           </Link>
 
           {/* Desktop Navigation */}
