@@ -55,7 +55,7 @@ export default function HomePage() {
               <span className="gradient-text">Halal Life Partner</span>
               <br />
               <span className="text-2xl sm:text-3xl md:text-4xl block mt-2 text-gray-600 dark:text-gray-300">
-                with Barkati Nikah Fast Service
+                with Barkati Fast Nikah Service
               </span>
             </h1>
 
@@ -107,7 +107,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose <span className="gradient-text">Barkati Nikah Service</span>?
+              Why Choose <span className="gradient-text">Barkati Fast Nikah Service</span>?
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               We make halal matrimony simple, safe, and successful

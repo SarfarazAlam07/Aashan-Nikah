@@ -120,7 +120,7 @@ export default function SignInPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/5 backdrop-blur-sm rounded-2xl shadow-lg mb-4 ring-1 ring-amber-500/30">
               <span className="text-5xl">🕌</span>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Nikah Aasan</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Barkati Fast Nikah  Service </h1>
             <p className="text-amber-200/70 text-sm">हलाल इस्लामिक मैट्रिमोनी</p>
             <div className="flex justify-center gap-1 mt-3">
               {[...Array(5)].map((_, i) => (

@@ -31,13 +31,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'Barkati Nikah Service - Halal Islamic Matrimony',
+    default: 'Barkati Fast Nikah Service - Halal Islamic Matrimony',
     template: '%s | Barkati Nikah Service',
     
   },
-  description: 'Barkati Nikah Service - India\'s most trusted halal Islamic matrimony platform by Maulana Farooq. Serving Patna, Chhapra & across Bihar. Find your halal life partner.',
+  description: 'Barkati Fast Nikah Service - India\'s most trusted halal Islamic matrimony platform by Maulana Farooq. Serving Patna, Chhapra & across Bihar. Find your halal life partner.',
   keywords: [
-    'Barkati Nikah Service',
+    'Barkati Fast Nikah Service',
+    'Barkati Fast Nikah Service Chhapra',
+    'Barkati Fast Nikah',
+    'Barkati Fast',
+    'Muslim Nikah',
+    'Barkati Chhapra',
     'Nikah',
     'Aao Nikah ashan kare',
     'Muslim acha ladka',
@@ -62,6 +67,9 @@ export const metadata: Metadata = {
     'halal rishta',
     'Bihar Muslim matrimony',
     'Sharia compliant marriage',
+    'Maulana Farooq',
+    'Maulana Farooq Chhapra'
+    
   ],
   authors: [{ name: 'Maulana Farooq' }],
   creator: 'Maulana Farooq',
@@ -75,13 +83,13 @@ export const metadata: Metadata = {
     title: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
     description: 'Find your halal life partner with Maulana Farooq at Barkati Nikah Service.',
     url: 'https://barkatinikah.com',
-    siteName: 'Barkati Nikah Fast Service',
+    siteName: 'Barkati Fast Nikah  Service',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Barkati Nikah Fast Service - Halal Islamic Matrimony',
+        alt: 'Barkati Fast Nikah Service - Halal Islamic Matrimony',
       },
     ],
     locale: 'en_IN',
@@ -105,7 +113,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://barkatinikah.com',
+    canonical: 'https://barkatinikah.versel.app',
   },
   category: 'matrimony',
   // 🔥 YAHAN TERA GOOGLE SEARCH CONSOLE KA CODE ADD HO GAYA HAI 🔥
@@ -138,6 +146,18 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Barkati Fast Nikah Service",
+              "alternateName": "Barkati Nikah Service",
+              "url": "https://barkatinikah.vercel.app/"
+            })
+          }}
+        />
       </head>
       <body 
         className={`${inter.className} antialiased bg-cream-50 dark:bg-dark-400 text-dark-200 dark:text-cream-50`}

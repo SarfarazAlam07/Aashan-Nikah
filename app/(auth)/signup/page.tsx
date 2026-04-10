@@ -204,7 +204,7 @@ export default function SignUpPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-white/5 backdrop-blur-sm rounded-2xl shadow-lg mb-3 ring-1 ring-amber-500/30">
               <span className="text-4xl">🕌</span>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Nikah Aasan</h1>
+            <h1 className="text-2xl font-bold text-white mb-1">Barkati Fast Nikah  Service </h1>
             <p className="text-amber-200/70 text-xs">हलाल इस्लामिक मैट्रिमोनी</p>
             <div className="flex justify-center gap-1 mt-2">
               {[...Array(5)].map((_, i) => (
