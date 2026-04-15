@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db/connect';
 import User from '@/models/User';
 import { verifyToken } from '@/lib/jwt';
+import { deleteCloudinaryImage } from '@/lib/cloudinary';
 import bcrypt from 'bcryptjs';
 
 // GET - Fetch all muftis
@@ -256,6 +257,10 @@ export async function DELETE(request: Request) {
         { success: false, error: 'Mufti ID required' },
         { status: 400 }
       );
+    }
+    const muftiToDelete = await User.findById(muftiId);
+    if (muftiToDelete && muftiToDelete.imageUrl) {
+      await deleteCloudinaryImage(muftiToDelete.imageUrl);
     }
     
     const deletedMufti = await User.findByIdAndDelete(muftiId);

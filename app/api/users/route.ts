@@ -1,5 +1,6 @@
 // app/api/users/route.ts
 import { NextResponse } from 'next/server';
+import { deleteCloudinaryImage } from '@/lib/cloudinary';
 import connectDB from '@/lib/db/connect';
 import User from '@/models/User';
 
@@ -93,6 +94,19 @@ export async function DELETE(request: Request) {
         { success: false, error: 'User ID required' },
         { status: 400 }
       );
+    }
+    const userToDelete = await User.findById(userId);
+    
+    if (!userToDelete) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Agar image hai, toh usey cloud se delete kar do
+    if (userToDelete.imageUrl) {
+      await deleteCloudinaryImage(userToDelete.imageUrl);
     }
 
     await User.findByIdAndDelete(userId);

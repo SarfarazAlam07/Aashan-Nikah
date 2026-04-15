@@ -187,6 +187,18 @@ export default function ProfilePage() {
     const toastId = toast.loading('Uploading...');
 
     try {
+      if (formData.imageUrl) {
+        const token = localStorage.getItem('token');
+        // Delete request ko background me daal diya taaki UI slow na ho
+        fetch('/api/delete-image', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+          },
+          body: JSON.stringify({ imageUrl: formData.imageUrl })
+        }).catch(err => console.error("Failed to delete old image", err));
+      }
       const data = new FormData();
       data.append('file', file);
       const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME || 'dhn69yomz';
