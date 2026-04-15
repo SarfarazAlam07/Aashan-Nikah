@@ -239,7 +239,7 @@ export default function ProfilePage() {
   }
 
   const maritalStatusOptions = [
-    { value: 'Never Married', label: 'Never Married' },
+    { value: 'Unmarried', label: 'Unmarried' },
     { value: 'Divorced', label: 'Divorced' },
     { value: 'Widowed', label: 'Widowed' },
     { value: 'Awaiting Divorce', label: 'Awaiting Divorce' }

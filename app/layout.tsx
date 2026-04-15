@@ -30,6 +30,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://barkatinikah.vercel.app'),
   title: {
     default: 'Barkati Fast Nikah Service - Halal Islamic Matrimony',
     template: '%s | Barkati Nikah Service',
@@ -39,6 +40,10 @@ export const metadata: Metadata = {
   keywords: [
     'Barkati Fast Nikah Service',
     'Barkati Fast Nikah Service Chhapra',
+    'Barkat-e-Nikah',
+    'Barkate nikah',
+    'nikah ke barkat',
+    'aasan nikah',
     'Barkati Fast Nikah',
     'Barkati Fast',
     'Muslim Nikah',
@@ -113,7 +118,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://barkatinikah.versel.app',
+    canonical: '/', 
   },
   category: 'matrimony',
   // 🔥 YAHAN TERA GOOGLE SEARCH CONSOLE KA CODE ADD HO GAYA HAI 🔥

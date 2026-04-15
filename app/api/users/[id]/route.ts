@@ -65,6 +65,7 @@ export async function GET(
         name: user.name,
         email: user.email,
         age: user.age,
+        phone: user.phone,
         gender: user.gender,
         city: user.city,
         district: user.district,

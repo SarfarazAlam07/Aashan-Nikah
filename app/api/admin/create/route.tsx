@@ -29,7 +29,7 @@ if (secretKey !== ADMIN_SECRET) {
       name,
       email,
       password: password, 
-      role: 'admin',
+      role: 'SUPER_ADMIN',
       isVerified: true,
       provider: 'email'
     });
