@@ -53,7 +53,7 @@ const UserSchema = new Schema<IUser>(
     isVerified: { type: Boolean, default: false },
     provider: { type: String, enum: ['email', 'google'], default: 'email' },
     motherTongue: { type: String, trim: true },
-    maritalStatus: { type: String, enum: ['Never Married', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Never Married' },
+    maritalStatus: { type: String, enum: ['Unmarried', 'Divorced', 'Widowed', 'Awaiting Divorce'], default: 'Unmarried' },
     height: { type: String },
     postedBy: { type: String, enum: ['Self', 'Parent', 'Sibling', 'Relative', 'Friend'], default: 'Self' },
     familyDetails: { type: String, maxlength: 1000 },
