@@ -4,7 +4,7 @@ import connectDB from '@/lib/db/connect';
 import User from '@/models/User';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://aao-nikah-aashan-kare.com';
+  const baseUrl = 'https://barkatinikah.vercel.app';
   
   await connectDB();
   
